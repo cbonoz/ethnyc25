@@ -10,7 +10,8 @@ import {
     message,
     Statistic,
     Row,
-    Col
+    Col,
+    Modal
 } from 'antd';
 import { 
     DollarOutlined,
@@ -35,11 +36,15 @@ import { useWalletClient } from '../../hooks/useWalletClient';
 const { Title, Text, Paragraph } = Typography;
 
 export default function OwnerActionsCard({ offerData, onUpdate }) {
+    if (!offerData) return null;
     const walletClient = useWalletClient();
-    const [loading, setLoading] = useState(false);
+    const [loadingComplete, setLoadingComplete] = useState(false);
+    const [loadingDeactivate, setLoadingDeactivate] = useState(false);
+    const [loadingReject, setLoadingReject] = useState(null); // clientAddress or null
     const [contractBalance, setContractBalance] = useState('0');
     const [offerRequests, setOfferRequests] = useState([]);
     const [loadingRequests, setLoadingRequests] = useState(false);
+    const [modal, setModal] = useState({ open: false, title: '', content: '', tx: '' });
 
     if (!offerData) return null;
 
@@ -83,41 +88,23 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
         };
     }, [walletClient, offerData?.contractAddress]);
 
-    const handleApproveRequest = async (clientAddress) => {
-        if (!walletClient) {
-            message.error('Please connect your wallet');
-            return;
-        }
-
-        try {
-            setLoading(true);
-            await approveOfferRequest(walletClient, offerData.contractAddress, clientAddress);
-            message.success('Offer request approved!');
-            if (onUpdate) onUpdate();
-            
-            // Refresh requests
-            const requests = await getOfferRequests(walletClient, offerData.contractAddress);
-            setOfferRequests(requests);
-        } catch (error) {
-            console.error('Error approving request:', error);
-            message.error(`Failed to approve request: ${error.message}`);
-        } finally {
-            setLoading(false);
-        }
-    };
+    // No approve action; replaced by mark complete at the offer level
 
     const handleRejectRequest = async (clientAddress) => {
         if (!walletClient) {
             message.error('Please connect your wallet');
             return;
         }
-
         try {
-            setLoading(true);
-            await rejectOfferRequest(walletClient, offerData.contractAddress, clientAddress);
-            message.success('Offer request rejected');
+            setLoadingReject(clientAddress);
+            const tx = await rejectOfferRequest(walletClient, offerData.contractAddress, clientAddress);
+            setModal({
+                open: true,
+                title: 'Offer Rejected',
+                content: 'Offer request rejected. Funds can now be withdrawn by the requester.',
+                tx: tx || ''
+            });
             if (onUpdate) onUpdate();
-            
             // Refresh requests
             const requests = await getOfferRequests(walletClient, offerData.contractAddress);
             setOfferRequests(requests);
@@ -125,7 +112,7 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
             console.error('Error rejecting request:', error);
             message.error(`Failed to reject request: ${error.message}`);
         } finally {
-            setLoading(false);
+            // loadingReject will be reset after modal closes
         }
     };
 
@@ -134,18 +121,27 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
             message.error('Please connect your wallet');
             return;
         }
-
         try {
-            setLoading(true);
-            await completeOffer(walletClient, offerData.contractAddress);
-            message.success('Offer marked as completed!');
+            setLoadingComplete(true);
+            const tx = await completeOffer(walletClient, offerData.contractAddress);
+            setModal({
+                open: true,
+                title: 'Offer Marked as Completed',
+                content: 'Offer marked as completed successfully!',
+                tx: tx || ''
+            });
             if (onUpdate) onUpdate();
         } catch (error) {
             console.error('Error completing offer:', error);
             message.error(`Failed to complete offer: ${error.message}`);
         } finally {
-            setLoading(false);
+            // loadingComplete will be reset after modal closes
         }
+    };
+    const handleModalClose = () => {
+        setModal({ open: false, title: '', content: '', tx: '' });
+        setLoadingComplete(false);
+        setLoadingReject(null);
     };
 
     const handleWithdrawFunds = async () => {
@@ -186,8 +182,7 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
             message.error('Please connect your wallet first');
             return;
         }
-
-        setLoading(true);
+        setLoadingDeactivate(true);
         try {
             await deactivateOffer(walletClient, offerData.contractAddress);
             message.success('Offer deactivated successfully! No new clients can request this offer.');
@@ -196,7 +191,7 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
             console.error('Error deactivating offer:', error);
             message.error(`Failed to deactivate offer: ${error.message}`);
         } finally {
-            setLoading(false);
+            setLoadingDeactivate(false);
         }
     };
 
@@ -246,27 +241,37 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
                 {/* Contract Status */}
                 <div style={{ textAlign: 'center' }}>
                     <Title level={3} style={{ color: '#ec348b', margin: 0 }}>
-                        Offer Status
+                        Offer & Requests
                     </Title>
                     <Paragraph type="secondary">
-                        Current state of your offer
+                        Status: <Text strong style={{ color: statusInfo.color }}>{statusInfo.text}</Text>
                     </Paragraph>
-                    <Text strong style={{ fontSize: '16px', color: statusInfo.color }}>
-                        {statusInfo.text}
-                    </Text>
                 </div>
 
                 {/* Contract Balance */}
                 <div style={{ textAlign: 'center' }}>
                     <Title level={4} style={{ margin: 0 }}>
-                        Contract Balance
+                        Contract Balance: <Text strong style={{ fontSize: '18px' }}>{contractBalance} PYUSD</Text>
                     </Title>
-                    <Text strong style={{ fontSize: '18px' }}>
-                        {contractBalance} PYUSD
-                    </Text>
                 </div>
 
                 <Divider />
+                <Modal
+                    open={modal.open}
+                    title={modal.title}
+                    onCancel={handleModalClose}
+                    onOk={handleModalClose}
+                    okText="Close"
+                    cancelButtonProps={{ style: { display: 'none' } }}
+                >
+                    <p>{modal.content}</p>
+                    {modal.tx && (
+                        <div style={{ marginTop: 12 }}>
+                            <span style={{ fontSize: 12, color: '#888' }}>Tx Hash:</span>
+                            <div style={{ wordBreak: 'break-all', fontSize: 13 }}>{typeof modal.tx === 'string' ? modal.tx : JSON.stringify(modal.tx)}</div>
+                        </div>
+                    )}
+                </Modal>
 
                 {/* Offer Requests */}
                 <div>
@@ -300,7 +305,7 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
                                     }
                                     extra={
                                         <Text type="secondary" style={{ fontSize: '12px' }}>
-                                            {new Date(request.requestedAt).toLocaleDateString()}
+                                            {request.requestedAt}
                                         </Text>
                                     }
                                 >
@@ -326,20 +331,22 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
                                                         type="primary"
                                                         size="small"
                                                         icon={<CheckCircleOutlined />}
-                                                        onClick={() => handleApproveRequest(request.clientAddress)}
-                                                        loading={loading}
+                                                        onClick={handleCompleteOffer}
+                                                        loading={loadingComplete}
+                                                        disabled={loadingComplete || loadingDeactivate || loadingReject}
                                                         style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
                                                     >
-                                                        Approve
+                                                        Mark as Completed
                                                     </Button>
                                                     <Button 
                                                         danger
                                                         size="small"
                                                         icon={<CloseCircleOutlined />}
                                                         onClick={() => handleRejectRequest(request.clientAddress)}
-                                                        loading={loading}
+                                                        loading={loadingReject === request.clientAddress}
+                                                        disabled={loadingReject === request.clientAddress || loadingComplete || loadingDeactivate}
                                                     >
-                                                        Reject
+                                                        Reject (Refund Client)
                                                     </Button>
                                                 </Space>
                                             </div>
@@ -353,7 +360,7 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
                                                 marginTop: '8px' 
                                             }}>
                                                 <Text style={{ color: '#52c41a', fontSize: '12px' }}>
-                                                    ✅ Approved
+                                                    ✅ Marked Complete
                                                 </Text>
                                             </div>
                                         )}
@@ -426,27 +433,15 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
                             block
                             icon={<CloseCircleOutlined />}
                             onClick={handleDeactivateOffer}
-                            loading={loading}
+                            loading={loadingDeactivate}
+                            disabled={loadingDeactivate || loadingComplete || loadingReject}
                             danger
                         >
                             Deactivate Offer
                         </Button>
                     )}
 
-                    {/* Complete Work Button */}
-                    {offerData.isFunded && !offerData.isCompleted && (
-                        <Button 
-                            type="primary"
-                            size="large" 
-                            block
-                            icon={<DollarOutlined />}
-                            onClick={handleCompleteOffer}
-                            loading={loading}
-                            style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
-                        >
-                            Mark as Completed
-                        </Button>
-                    )}
+                    {/* Mark as Completed now handled per request card */}
 
                     {offerData.isCompleted && parseFloat(contractBalance) > 0 && (
                         <Button 
@@ -490,7 +485,7 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
 
                 <div style={{ textAlign: 'center' }}>
                     <Text type="secondary" style={{ fontSize: '12px' }}>
-                        Simplified workflow: Client requests → You approve → Client pays → Complete work → Withdraw funds
+                        Simplified workflow: Client requests → You mark complete or reject (refund) → Withdraw funds
                     </Text>
                 </div>
             </Space>

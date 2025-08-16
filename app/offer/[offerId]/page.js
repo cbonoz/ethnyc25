@@ -156,14 +156,24 @@ export default function OfferPage({ params }) {
                 </Row>
 
                 {/* Owner's Other Offers Section */}
-                {isOwner && (
-                    <div style={{ marginTop: 48, marginBottom: 24 }}>
-                        <OwnerOffersGrid 
-                            offers={ownerOffers.filter(offer => offer.contractAddress !== offerId)} 
-                            loading={offersLoading}
-                            showEmptyState={false}
-                        />
-                    </div>
+                {isOwner && !offersLoading && (
+                    (() => {
+                        const otherOffers = ownerOffers.filter(offer => offer.contractAddress !== offerId);
+                        
+                        // Only show if there are actual other offers
+                        if (otherOffers.length > 0) {
+                            return (
+                                <div style={{ marginTop: 48, marginBottom: 24 }}>
+                                    <OwnerOffersGrid 
+                                        offers={otherOffers}
+                                        loading={false}
+                                        showEmptyState={false}
+                                    />
+                                </div>
+                            );
+                        }
+                        return null;
+                    })()
                 )}
 
                 {/* Back Button */}

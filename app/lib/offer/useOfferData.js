@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 import { getMetadata } from '../../util/appContractViem';
 
@@ -68,12 +68,25 @@ export default function useOfferData(offerId) {
         fetchData();
     }, [offerId]);
 
-    // Simple wallet address - no complex memoization
-    const userAddress = primaryWallet?.address || null;
+    // Memoize userAddress to avoid unnecessary rerenders
+    const userAddress = useMemo(() => primaryWallet?.address || null, [primaryWallet?.address]);
     
-    // Simple ownership check
-    const isOwner = userAddress && offerData && 
-        userAddress.toLowerCase() === offerData.owner?.toLowerCase();
+    // Memoize isOwner to avoid unnecessary rerenders
+    const isOwner = useMemo(() => {
+        return userAddress && offerData && userAddress.toLowerCase() === offerData.owner?.toLowerCase();
+    }, [userAddress, offerData?.owner]);
+
+    // Debug logging (only log when values change)
+    useEffect(() => {
+        if (userAddress && offerData) {
+            console.log('🔍 Ownership check:', {
+                userAddress: userAddress.toLowerCase(),
+                offerOwner: offerData.owner?.toLowerCase(),
+                isOwner: isOwner,
+                contractAddress: offerData.contractAddress
+            });
+        }
+    }, [userAddress, offerData, isOwner]);
 
     return {
         loading,

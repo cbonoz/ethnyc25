@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, {useState} from 'react';
 import { 
     Card, 
     Row, 
@@ -54,9 +54,15 @@ const STATUS_CONFIG = {
 
 export default function OwnerOffersGrid({ offers, loading, showEmptyState = true }) {
     const router = useRouter();
+    const [loadingOffer, setLoadingOffer] = useState(null); // contractAddress of offer being acted on
 
     const handleViewOffer = (contractAddress) => {
-        router.push(`/offer/${contractAddress}`);
+        setLoadingOffer(contractAddress);
+        // Simulate async navigation for demo; replace with actual async if needed
+        setTimeout(() => {
+            setLoadingOffer(null);
+            router.push(`/offer/${contractAddress}`);
+        }, 300);
     };
 
     const truncateText = (text, maxLength = 80) => {
@@ -104,23 +110,13 @@ export default function OwnerOffersGrid({ offers, loading, showEmptyState = true
             <Row gutter={[16, 16]}>
                 {offers.map((offer) => {
                     const statusConfig = STATUS_CONFIG[offer.status] || STATUS_CONFIG.pending;
-                    
+                    const isLoading = loadingOffer === offer.contractAddress;
                     return (
                         <Col xs={24} sm={12} lg={8} key={offer.contractAddress}>
                             <Card
                                 hoverable
-                                actions={[
-                                    <Tooltip title="View Details">
-                                        <Button 
-                                            type="text" 
-                                            icon={<EyeOutlined />}
-                                            onClick={() => handleViewOffer(offer.contractAddress)}
-                                        >
-                                            View
-                                        </Button>
-                                    </Tooltip>
-                                ]}
-                                style={{ height: '100%' }}
+                                style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+                                bodyStyle={{ display: 'flex', flexDirection: 'column', height: '100%' }}
                             >
                                 <div style={{ marginBottom: 12 }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
@@ -135,11 +131,9 @@ export default function OwnerOffersGrid({ offers, loading, showEmptyState = true
                                             {offer.createdAt}
                                         </Text>
                                     </div>
-                                    
                                     <Title level={5} style={{ margin: '8px 0', lineHeight: 1.3 }}>
                                         {truncateText(offer.title, 40)}
                                     </Title>
-                                    
                                     <Paragraph 
                                         type="secondary" 
                                         style={{ 
@@ -152,7 +146,6 @@ export default function OwnerOffersGrid({ offers, loading, showEmptyState = true
                                         {truncateText(offer.description, 60)}
                                     </Paragraph>
                                 </div>
-
                                 <div style={{ marginTop: 'auto' }}>
                                     <Space direction="vertical" size="small" style={{ width: '100%' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -163,7 +156,6 @@ export default function OwnerOffersGrid({ offers, loading, showEmptyState = true
                                                 {offer.serviceType}
                                             </Tag>
                                         </div>
-                                        
                                         {offer.deadline && (
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                                 <ClockCircleOutlined style={{ fontSize: '12px', color: '#8c8c8c' }} />
@@ -172,9 +164,20 @@ export default function OwnerOffersGrid({ offers, loading, showEmptyState = true
                                                 </Text>
                                             </div>
                                         )}
-
                                         <div style={{ fontSize: '11px', color: '#8c8c8c' }}>
                                             {offer.contractAddress.slice(0, 6)}...{offer.contractAddress.slice(-4)}
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8, flexWrap: 'wrap', gap: 8 }}>
+                                            <Tooltip title="View Details">
+                                                <Button 
+                                                    type="text" 
+                                                    icon={isLoading ? <Spin size="small" /> : <EyeOutlined />} 
+                                                    onClick={() => handleViewOffer(offer.contractAddress)}
+                                                    disabled={isLoading}
+                                                >
+                                                    {isLoading ? 'Loading...' : 'View'}
+                                                </Button>
+                                            </Tooltip>
                                         </div>
                                     </Space>
                                 </div>
