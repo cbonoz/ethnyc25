@@ -32,12 +32,13 @@ export default function About() {
             title: 'One-Click Form + Payment',
             description: 'Collect structured client info and payment in a single, seamless flow. No accounts or complex onboarding required.'
         }
-    ];    const useCases = [
+    ];    
+
+    const useCases = [
         'Freelancers and service providers collecting offers or deposits',
         'Anyone looking to simplify client onboarding and payment',
         'Agencies or consultants issuing milestone-based contracts',
-        'Anyone needing trustless, on-chain form + payment flows',
-        'Teams wanting transparent, automated approval and payout logic'
+        'Teams wanting full audibility of actions with on-chain payout logic'
     ];
 
     return (
@@ -49,7 +50,7 @@ export default function About() {
                     About {APP_NAME}
                 </Title>
                 <Paragraph style={{ fontSize: '20px', color: '#666', maxWidth: '700px', margin: '0 auto 32px' }}>
-                    <b>SimpleOffer</b> is a one-click, decentralized form + payment system for any business or service provider. Collect structured client info, generate offers, and manage payments—all on-chain, with wallet-based authentication and smart contract automation.
+                    <b>SimpleOffer</b> is a decentralized form + payment system for any business or service provider. Collect structured client info, generate offers, and manage payments—all on-chain, with wallet-based authentication and smart contract automation.
                 </Paragraph>
                 
                 {/* Hackathon Notice */}
@@ -68,7 +69,7 @@ export default function About() {
                     </Space>
                     <Paragraph style={{ marginTop: '8px', marginBottom: 0, color: '#8c8c8c', fontSize: '14px' }}>
                         This application is a hackathon prototype built for demonstration purposes. 
-                        It is provided "as-is" without warranties. Please do not use with real funds in production environments.
+                        It is provided "as-is" without warranties.
                     </Paragraph>
                 </Card>
 

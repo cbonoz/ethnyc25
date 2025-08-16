@@ -62,10 +62,10 @@ const DynamicWrapper = ({ children }) => {
               nativeCurrency: {
                 decimals: 18,
                 name: 'Sepolia Ether',
-                symbol: 'SEP',
+                symbol: 'ETH',
               },
               networkId: 11155111,
-              rpcUrls: ['https://rpc.sepolia.org/'],
+              rpcUrls: ['https://sepolia.rpc.thirdweb.com/'],
               vanityName: 'Sepolia',
             }
           ]

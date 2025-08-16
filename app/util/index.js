@@ -368,6 +368,34 @@ export const handleContractError = (error, operationName = 'transaction') => {
 	) {
 		throw new Error('Insufficient funds for transaction fees. Please add more ETH to your wallet.');
 	}
+
+	// Contract-specific errors for offer requests
+	if (errorMessage.includes('Already requested')) {
+		throw new Error(
+			'You have already submitted a request for this offer. Please wait for the owner to review your request.'
+		);
+	}
+	if (errorMessage.includes('Offer is not active')) {
+		throw new Error(
+			'This offer is no longer active and cannot accept new requests.'
+		);
+	}
+	if (errorMessage.includes('Offer already accepted')) {
+		throw new Error(
+			'This offer has already been accepted by another client.'
+		);
+	}
+	if (errorMessage.includes('Owner cannot request their own offer')) {
+		throw new Error(
+			'You cannot request your own offer. This action is only available to other users.'
+		);
+	}
+	if (errorMessage.includes('Already requested')) {
+		throw new Error(
+			'You have already submitted a request for this offer.'
+		);
+	}
+
 	if (
 		errorMessage.includes('transfer failed') ||
 		errorMessage.includes('transfer amount exceeds')
@@ -378,9 +406,10 @@ export const handleContractError = (error, operationName = 'transaction') => {
 	}
 
 	// Gas estimation errors
-	if (errorMessage.includes('gas') || errorMessage.includes('estimate')) {
+	if (errorMessage.includes('gas') || errorMessage.includes('estimate') || 
+		errorMessage.includes('UNPREDICTABLE_GAS_LIMIT') || error.code === 'UNPREDICTABLE_GAS_LIMIT') {
 		throw new Error(
-			'Unable to estimate gas fees. This usually means you need more funds in your wallet for transaction fees, or there may be an issue with the transaction parameters. Try refreshing and attempting again.'
+			'Transaction would fail during execution. This usually means there\'s an issue with the transaction parameters, insufficient balance, or the contract requirements are not met. Please check your inputs and try again.'
 		);
 	}
 
