@@ -50,8 +50,8 @@ export const ACTIVE_CHAIN = sepolia;
 
 // PYUSD token address (replace with actual addresses)
 export const PYUSD_TOKEN_ADDRESS = process.env.NEXT_PUBLIC_NETWORK === 'mainnet'
-    ? '0xReplaceWithMainnetPYUSD'
-    : '0xReplaceWithTestnetPYUSD';
+    ? '0x6c3ea9036406852006290770BEdFcAbA0e23A0e8' // mainnet address
+    : '0xCaC524BcA292aaade2DF8A05cC58F0a65B1B3bB9'; // testnet address (default)
 
 export const IPFS_BASE_URL = 'https://ipfs.example.com';
 

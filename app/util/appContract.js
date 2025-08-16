@@ -1,26 +1,17 @@
 import { ethers } from 'ethers';
 import { SIMPLEOFFER_CONTRACT } from './metadata';
 import { formatDate, handleContractError, executeContractTransactionWithRetry, validateTransactionInputs, executeApprovalWithRetry } from '.';
-import { PYUSD_TOKEN_ADDRESS } from '../constants';
-
-// Helper function to hash passcode
-export function hashPasscode(passcode) {
-    if (!passcode || passcode.trim() === '') {
-        return ethers.constants.HashZero;
-    }
-    return ethers.utils.keccak256(ethers.utils.toUtf8Bytes(passcode));
-}
+import { PYUSD_TOKEN_ADDRESS, ACTIVE_CHAIN } from '../constants';
 
 export async function deployContract(
     signer,
-    policyName,
-    policyDescription,
-    businessType,
-    location,
-    employeeCount,
-    maxAmount,
-    category,
-    passcode = ''
+    title,
+    description,
+    serviceType,
+    deliverables,
+    amount,
+    deadline,
+    clientAddress
 ) {
     try {
         // Check if signer is available and connected
@@ -31,6 +22,14 @@ export async function deployContract(
         // Get the current network from the signer
         const network = await signer.provider.getNetwork();
         console.log('Deploying to network:', network.name, network.chainId);
+
+        // Check if we're on the expected network
+        if (network.chainId !== ACTIVE_CHAIN.id) {
+            const currentNetworkName = network.chainId === 11155111 ? 'Sepolia Testnet' : 
+                                     network.chainId === 1 ? 'Ethereum Mainnet' : 
+                                     `Unknown (${network.chainId})`;
+            throw new Error(`Wrong network! Expected ${ACTIVE_CHAIN.name} (${ACTIVE_CHAIN.id}) but connected to ${currentNetworkName}. Please switch your wallet to ${ACTIVE_CHAIN.name}.`);
+        }
 
         // Deploy contract with ethers
         const factory = new ethers.ContractFactory(
@@ -44,38 +43,31 @@ export async function deployContract(
             // gasPrice: 10000000000,
         };
 
-        // Hash the passcode if provided
-        const passcodeHash = hashPasscode(passcode);
-
-        // Convert maxAmount to Wei units to match how claims are submitted
-        const maxAmountInWei = ethers.utils.parseUnits(maxAmount.toString(), 18);
+        // Convert amount to Wei units (PYUSD uses 6 decimals like USDC)
+        const amountInWei = ethers.utils.parseUnits(amount.toString(), 6);
 
         console.log(
-            'Deploying reimbursement policy contract...',
-            policyName,
-            policyDescription,
-            businessType,
-            location,
-            employeeCount,
-            maxAmount,
-            'maxAmountInWei:', maxAmountInWei.toString(),
-            category,
-            'PYUSD Address:',
-            PYUSD_TOKEN_ADDRESS,
-            'Has Passcode:',
-            passcode ? 'Yes' : 'No'
+            'Deploying offer contract...',
+            'Title:', title,
+            'Description:', description,
+            'Service Type:', serviceType,
+            'Deliverables:', deliverables,
+            'Amount:', amount,
+            'Amount in Wei:', amountInWei.toString(),
+            'Deadline:', deadline,
+            'PYUSD Address:', PYUSD_TOKEN_ADDRESS,
+            'Client Address:', clientAddress
         );
 
         const contract = await factory.deploy(
-            policyName,
-            policyDescription,
-            businessType,
-            location,
-            employeeCount,
-            maxAmountInWei, // Use Wei units to match claim submission format
-            category,
-            PYUSD_TOKEN_ADDRESS, // Add PYUSD token address as the last parameter
-            passcodeHash
+            title,
+            description,
+            serviceType,
+            deliverables,
+            amountInWei,
+            deadline,
+            PYUSD_TOKEN_ADDRESS,
+            clientAddress
         );
 
         await contract.deployed();
@@ -89,26 +81,74 @@ export async function deployContract(
 
 export const getMetadata = async (signer, address) => {
     const contract = new ethers.Contract(address, SIMPLEOFFER_CONTRACT.abi, signer);
-    const result = await contract.getPolicyMetadata();
-    console.log('policy metadata result', result);
-    console.log('raw maxAmount from contract:', result[2].maxAmount.toString());
     
-    const formattedMaxAmount = ethers.utils.formatUnits(result[2].maxAmount, 18);
-    console.log('formatted maxAmount:', formattedMaxAmount);
+    // Get offer metadata (returns struct)
+    const metadata = await contract.getOfferMetadata();
+    console.log('offer metadata result', metadata);
+    
+    // Get offer status (returns struct)
+    const status = await contract.getOfferStatus();
+    console.log('offer status result', status);
+    
+    // Format amount from Wei (6 decimals for PYUSD)
+    const formattedAmount = ethers.utils.formatUnits(metadata.amount, 6);
+    console.log('formatted amount:', formattedAmount);
     
     return {
-        name: result[0],
-        description: result[1],
-        policyParams: {
-            businessType: result[2].businessType,
-            location: result[2].location,
-            employeeCount: result[2].employeeCount,
-            maxAmount: formattedMaxAmount, // Keep as string to preserve precision
-            category: result[2].category,
-            isActive: result[2].isActive
-        },
-        claimCount: result[3].toNumber(),
-        createdAt: formatDate(result[4].toNumber() * 1000),
-        owner: result[5],
+        title: metadata.title,
+        description: metadata.description, 
+        serviceType: metadata.serviceType,
+        category: metadata.serviceType, // Map serviceType to category for frontend compatibility
+        deliverables: metadata.deliverables,
+        amount: formattedAmount,
+        deadline: new Date(metadata.deadline.toNumber() * 1000).toLocaleDateString(),
+        isActive: metadata.isActive,
+        createdAt: formatDate(metadata.createdAt.toNumber() * 1000),
+        owner: status.owner,
+        client: status.client,
+        isAccepted: status.isAccepted,
+        isFunded: status.isFunded,
+        isCompleted: status.isCompleted
     };
+};
+
+// Complete offer (owner only) - marks work as done
+export const completeOffer = async (signer, contractAddress) => {
+    try {
+        const contract = new ethers.Contract(contractAddress, SIMPLEOFFER_CONTRACT.abi, signer);
+        const tx = await contract.completeOffer();
+        await tx.wait();
+        console.log('Offer completed successfully');
+        return tx;
+    } catch (error) {
+        console.error('Error completing offer:', error);
+        handleContractError(error, 'complete offer');
+    }
+};
+
+// Withdraw funds (owner only) - after completion
+export const withdrawFunds = async (signer, contractAddress) => {
+    try {
+        const contract = new ethers.Contract(contractAddress, SIMPLEOFFER_CONTRACT.abi, signer);
+        const tx = await contract.withdrawFunds();
+        await tx.wait();
+        console.log('Funds withdrawn successfully');
+        return tx;
+    } catch (error) {
+        console.error('Error withdrawing funds:', error);
+        handleContractError(error, 'withdraw funds');
+    }
+};
+
+// Get contract balance
+export const getContractBalance = async (signer, contractAddress) => {
+    try {
+        const contract = new ethers.Contract(contractAddress, SIMPLEOFFER_CONTRACT.abi, signer);
+        const balance = await contract.getContractBalance();
+        // Format balance from Wei (6 decimals for PYUSD)
+        return ethers.utils.formatUnits(balance, 6);
+    } catch (error) {
+        console.error('Error getting contract balance:', error);
+        return '0';
+    }
 };

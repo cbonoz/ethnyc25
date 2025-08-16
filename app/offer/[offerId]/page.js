@@ -17,15 +17,23 @@ import {
     ContractInfoCard,
     ClientActionsCard,
     OwnerActionsCard,
-    useOfferData
+    OwnerOffersGrid,
+    useOfferData,
+    useOwnerOffers
 } from '../../lib/offer';
 
 const { Title, Paragraph } = Typography;
 
 export default function OfferPage({ params }) {
     const router = useRouter();
-    const { offerId } = params;
+    // Use React.use() to unwrap the params Promise
+    const resolvedParams = React.use(params);
+    const { offerId } = resolvedParams;
     const { loading, error, offerData, isOwner, refetch } = useOfferData(offerId);
+    const { 
+        loading: offersLoading, 
+        offers: ownerOffers 
+    } = useOwnerOffers();
 
     if (loading) {
         return (
@@ -140,6 +148,16 @@ export default function OfferPage({ params }) {
                         )}
                     </Col>
                 </Row>
+
+                {/* Owner's Other Offers Section */}
+                {isOwner && (
+                    <div style={{ marginTop: 48, marginBottom: 24 }}>
+                        <OwnerOffersGrid 
+                            offers={ownerOffers.filter(offer => offer.contractAddress !== offerId)} 
+                            loading={offersLoading}
+                        />
+                    </div>
+                )}
 
                 {/* Back Button */}
                 <div style={{ textAlign: 'center', marginTop: 32 }}>

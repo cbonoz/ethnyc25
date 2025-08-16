@@ -40,17 +40,20 @@ export default function useOfferData(offerId) {
             
             const data = {
                 contractAddress: offerId,
-                title: metadata.name,
+                title: metadata.title,
                 description: metadata.description,
-                category: metadata.policyParams.category,
-                amount: metadata.policyParams.maxAmount,
-                location: metadata.policyParams.location,
-                businessType: metadata.policyParams.businessType,
-                employeeCount: metadata.policyParams.employeeCount,
-                isActive: metadata.policyParams.isActive,
-                claimCount: metadata.claimCount,
+                category: metadata.category || metadata.serviceType,
+                serviceType: metadata.serviceType,
+                deliverables: metadata.deliverables,
+                amount: metadata.amount,
+                deadline: metadata.deadline,
+                isActive: metadata.isActive,
                 createdAt: metadata.createdAt,
-                owner: metadata.owner
+                owner: metadata.owner,
+                client: metadata.client,
+                isAccepted: metadata.isAccepted,
+                isFunded: metadata.isFunded,
+                isCompleted: metadata.isCompleted
             };
             
             setOfferData(data);

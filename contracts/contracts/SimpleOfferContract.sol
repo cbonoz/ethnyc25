@@ -18,6 +18,15 @@ contract SimpleOfferContract is ReentrancyGuard {
         uint256 createdAt;
     }
     
+    // Offer status structure
+    struct OfferStatus {
+        address owner;
+        address client;
+        bool isAccepted;
+        bool isFunded;
+        bool isCompleted;
+    }
+    
     // Contract state
     address public owner;
     address public client;
@@ -128,7 +137,23 @@ contract SimpleOfferContract is ReentrancyGuard {
         emit FundsWithdrawn(client, balance);
     }
     
-    // Get offer details
+    // Get basic offer metadata
+    function getOfferMetadata() external view returns (OfferMetadata memory) {
+        return offerMetadata;
+    }
+    
+    // Get offer participants and status
+    function getOfferStatus() external view returns (OfferStatus memory) {
+        return OfferStatus({
+            owner: owner,
+            client: client,
+            isAccepted: isAccepted,
+            isFunded: isFunded,
+            isCompleted: isCompleted
+        });
+    }
+    
+    // Get offer details (simplified version for backward compatibility)
     function getOfferDetails() external view returns (
         string memory title,
         string memory description,
@@ -137,12 +162,7 @@ contract SimpleOfferContract is ReentrancyGuard {
         uint256 amount,
         uint256 deadline,
         bool isActive,
-        uint256 createdAt,
-        address offerOwner,
-        address offerClient,
-        bool accepted,
-        bool funded,
-        bool completed
+        uint256 createdAt
     ) {
         return (
             offerMetadata.title,
@@ -152,12 +172,7 @@ contract SimpleOfferContract is ReentrancyGuard {
             offerMetadata.amount,
             offerMetadata.deadline,
             offerMetadata.isActive,
-            offerMetadata.createdAt,
-            owner,
-            client,
-            isAccepted,
-            isFunded,
-            isCompleted
+            offerMetadata.createdAt
         );
     }
     

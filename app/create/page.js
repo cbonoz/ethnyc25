@@ -10,6 +10,7 @@ import {
     Typography 
 } from 'antd';
 import Logo from '../lib/Logo';
+import NetworkStatus from '../lib/NetworkStatus';
 import { APP_NAME } from '../constants';
 import {
     CreateSteps,
@@ -73,6 +74,11 @@ export default function CreateOffer() {
                     <Paragraph type="secondary" style={{ fontSize: '18px' }}>
                         Set up a decentralized service offer with smart contract automation
                     </Paragraph>
+                    
+                    {/* Network Status */}
+                    <div style={{ marginTop: 24, maxWidth: '500px', margin: '24px auto 0' }}>
+                        <NetworkStatus />
+                    </div>
                 </div>
 
                 {/* Steps */}

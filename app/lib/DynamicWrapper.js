@@ -8,7 +8,7 @@ import {
 import { DynamicWagmiConnector } from "@dynamic-labs/wagmi-connector";
 import {
   createConfig,
-  WagmiConfig,
+  WagmiProvider,
 } from 'wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { http } from 'viem';
@@ -39,13 +39,13 @@ const DynamicWrapper = ({ children }) => {
         borderRadius: 8,
       }}
     >
-      <WagmiConfig config={config}>
+      <WagmiProvider config={config}>
         <QueryClientProvider client={queryClient}>
           <DynamicWagmiConnector>
             {children}
           </DynamicWagmiConnector>
         </QueryClientProvider>
-      </WagmiConfig>
+      </WagmiProvider>
     </DynamicContextProvider>
   );
 };

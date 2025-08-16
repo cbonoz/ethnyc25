@@ -3,12 +3,13 @@
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { abbreviate, isAdminAddress } from '../util';
-import { ACTIVE_CHAIN, APP_NAME } from '../constants';
+import { ACTIVE_CHAIN, APP_NAME, siteConfig } from '../constants';
 import StyledComponentsRegistry from './AntdRegistry';
 import { Button, ConfigProvider, Layout, Menu } from 'antd';
 import { Content, Footer, Header } from 'antd/es/layout/layout';
 import Image from 'next/image';
 import ConnectButton from './ConnectButton';
+import NetworkStatus from './NetworkStatus';
 import { Theme } from '@ant-design/cssinjs';
 import { antdTheme, colors } from '../theme/colors';
 
@@ -23,7 +24,7 @@ function UiLayoutWrapper({ children }) {
 		menuItems = [
 			{
 				key: '/create',
-				label: <Link href="/create">Make an offer page</Link>,
+				label: <Link href="/create">{siteConfig.cta.primary}</Link>,
 				href: '/create'
 			},
 			{
@@ -68,9 +69,13 @@ function UiLayoutWrapper({ children }) {
 							style={{
 								float: 'right',
 								right: 20,
-								position: 'absolute'
+								position: 'absolute',
+								display: 'flex',
+								alignItems: 'center',
+								gap: '12px'
 							}}
 						>
+							<NetworkStatus showSwitcher={true} />
 							<ConnectButton size="middle" />
 							{/* {!wallet?.address && <Button href="#" type="primary" onClick={connect}>Connect</Button>} */}
 							{/* {wallet?.address && <span>{abbreviate(wallet?.address)}&nbsp;(<a href="#" onClick={logout}>logout</a>)</span>} */}

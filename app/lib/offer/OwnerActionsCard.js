@@ -25,19 +25,81 @@ import {
     SettingOutlined,
     WalletOutlined
 } from '@ant-design/icons';
-import { fundContractWithPYUSD, withdrawFromContract } from '../../util/appContract';
+import { completeOffer, withdrawFunds, getContractBalance } from '../../util/appContract';
 import { useEthersSigner } from '../../hooks/useEthersSigner';
+import { useEffect } from 'react';
 
 const { Title, Text, Paragraph } = Typography;
 
 export default function OwnerActionsCard({ offerData, onUpdate }) {
     const signer = useEthersSigner();
     const [loading, setLoading] = useState(false);
-    const [fundModalVisible, setFundModalVisible] = useState(false);
-    const [withdrawModalVisible, setWithdrawModalVisible] = useState(false);
+    const [contractBalance, setContractBalance] = useState('0');
     const [form] = Form.useForm();
 
     if (!offerData) return null;
+
+    // Fetch contract balance
+    useEffect(() => {
+        const fetchBalance = async () => {
+            if (signer && offerData.contractAddress) {
+                try {
+                    const balance = await getContractBalance(signer, offerData.contractAddress);
+                    setContractBalance(balance);
+                } catch (error) {
+                    console.error('Error fetching contract balance:', error);
+                }
+            }
+        };
+        
+        fetchBalance();
+    }, [signer, offerData.contractAddress, offerData.isFunded]);
+
+    const handleCompleteOffer = async () => {
+        if (!signer) {
+            message.error('Please connect your wallet');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            await completeOffer(signer, offerData.contractAddress);
+            message.success('Offer marked as completed!');
+            if (onUpdate) onUpdate();
+        } catch (error) {
+            console.error('Error completing offer:', error);
+            message.error(`Failed to complete offer: ${error.message}`);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleWithdrawFunds = async () => {
+        if (!signer) {
+            message.error('Please connect your wallet');
+            return;
+        }
+
+        if (!offerData.isCompleted) {
+            message.warning('You can only withdraw funds after completing the offer');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            await withdrawFunds(signer, offerData.contractAddress);
+            message.success('Funds withdrawn successfully!');
+            if (onUpdate) onUpdate();
+            // Update balance
+            const newBalance = await getContractBalance(signer, offerData.contractAddress);
+            setContractBalance(newBalance);
+        } catch (error) {
+            console.error('Error withdrawing funds:', error);
+            message.error(`Failed to withdraw funds: ${error.message}`);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleToggleStatus = async () => {
         message.info('Toggle status functionality to be implemented');
@@ -50,47 +112,20 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
         message.success('Offer link copied to clipboard!');
     };
 
-    const handleFundContract = async (values) => {
-        if (!signer) {
-            message.error('Please connect your wallet');
-            return;
-        }
-
-        try {
-            setLoading(true);
-            await fundContractWithPYUSD(signer, offerData.contractAddress, values.amount);
-            message.success('Contract funded successfully!');
-            setFundModalVisible(false);
-            form.resetFields();
-            if (onUpdate) onUpdate();
-        } catch (error) {
-            console.error('Error funding contract:', error);
-            message.error(`Failed to fund contract: ${error.message}`);
-        } finally {
-            setLoading(false);
+    // Helper function to get status info
+    const getStatusInfo = () => {
+        if (!offerData.isAccepted) {
+            return { text: 'Waiting for client acceptance', color: 'orange' };
+        } else if (!offerData.isFunded) {
+            return { text: 'Accepted - Waiting for payment', color: 'blue' };
+        } else if (!offerData.isCompleted) {
+            return { text: 'Funded - Ready to complete', color: 'green' };
+        } else {
+            return { text: 'Completed - Ready to withdraw', color: 'purple' };
         }
     };
 
-    const handleWithdrawFunds = async (values) => {
-        if (!signer) {
-            message.error('Please connect your wallet');
-            return;
-        }
-
-        try {
-            setLoading(true);
-            await withdrawFromContract(signer, offerData.contractAddress, values.amount);
-            message.success('Funds withdrawn successfully!');
-            setWithdrawModalVisible(false);
-            form.resetFields();
-            if (onUpdate) onUpdate();
-        } catch (error) {
-            console.error('Error withdrawing funds:', error);
-            message.error(`Failed to withdraw funds: ${error.message}`);
-        } finally {
-            setLoading(false);
-        }
-    };
+    const statusInfo = getStatusInfo();
 
     return (
         <>

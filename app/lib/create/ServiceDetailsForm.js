@@ -5,7 +5,9 @@ import {
     Form, 
     Input, 
     Select, 
-    Typography 
+    Typography,
+    Button,
+    Space
 } from 'antd';
 
 const { Title, Paragraph } = Typography;
@@ -26,13 +28,46 @@ export const SERVICE_CATEGORIES = [
     'Other'
 ];
 
+const DEMO_DATA = {
+    // Service Details
+    title: "Custom E-commerce Website Development",
+    category: "Web Development",
+    description: "I will create a fully responsive, modern e-commerce website using React and Node.js. The website will include user authentication, payment processing, product catalog, shopping cart, and admin dashboard. All code will be clean, well-documented, and optimized for performance.",
+    deliverables: "- Fully responsive e-commerce website\n- User registration and authentication system\n- Payment gateway integration (Stripe/PayPal)\n- Product catalog with search and filtering\n- Shopping cart and checkout process\n- Admin dashboard for product management\n- SEO optimization\n- 2 rounds of revisions\n- 30 days of post-launch support",
+    timeline: "3-4 weeks",
+    
+    // Payment Terms
+    paymentType: 'fixed',
+    amount: 2500,
+    depositPercentage: 0,
+    paymentTerms: 'Full payment ($2,500) due upon completion and client approval. No deposit required - payment released only after successful delivery of all deliverables. Payment accepted in PYUSD stablecoin for transparent, secure transactions.',
+    requiresApproval: 'yes'
+};
+
 export default function ServiceDetailsForm() {
+    const form = Form.useFormInstance();
+
+    const handleSetDemoData = () => {
+        form.setFieldsValue(DEMO_DATA);
+    };
+
     return (
         <div>
-            <Title level={3}>Service Details</Title>
-            <Paragraph type="secondary">
-                Describe the service you're offering and set basic requirements.
-            </Paragraph>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <div>
+                    <Title level={3}>Service Details</Title>
+                    <Paragraph type="secondary">
+                        Describe the service you're offering and set basic requirements.
+                    </Paragraph>
+                </div>
+                <Button 
+                    type="dashed" 
+                    onClick={handleSetDemoData}
+                    style={{ height: 'auto', padding: '8px 16px' }}
+                >
+                    Fill Demo Data (All Steps)
+                </Button>
+            </div>
             
             <Form.Item
                 name="title"
