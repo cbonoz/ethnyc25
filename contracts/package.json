@@ -1,0 +1,27 @@
+{
+  "name": "simpleoffer",
+  "version": "0.0.1",
+  "description": "Forge",
+  "license": "MIT",
+  "scripts": {
+    "build": "npx hardhat compile",
+    "apply": "yarn build && node update-metadata.js"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.9.3",
+    "@typechain/ethers-v6": "^0.4.0",
+    "@types/chai": "^4.2.0",
+    "@types/mocha": ">=9.1.0",
+    "ts-node": ">=8.0.0",
+    "typechain": "^8.2.0"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ignition": "^3.0.0",
+    "@nomicfoundation/hardhat-toolbox-viem": "^5.0.0",
+    "@types/node": "^22.17.2",
+    "hardhat": "^3.0.0",
+    "typescript": "~5.8.0",
+    "viem": "^2.33.3"
+  }
+}
