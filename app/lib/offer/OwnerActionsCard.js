@@ -119,7 +119,7 @@ const OwnerActionsCard = React.memo(function OwnerActionsCard({ offerData, onUpd
                 content: 'Offer marked as completed successfully!',
                 tx: tx || ''
             });
-            if (onUpdate) onUpdate();
+            // Force refresh to get latest requests from contract
             refreshData();
         } catch (error) {
             console.error('Error completing offer:', error);
@@ -313,8 +313,23 @@ const OwnerActionsCard = React.memo(function OwnerActionsCard({ offerData, onUpd
                                             </Paragraph>
                                         </div>
 
-                                        {/* Only show actions if not approved or rejected (pending) */}
-                                        {(!request.isApproved && !request.isRejected) && (
+
+                                        {/* Show Mark as Completed only for the accepted client if offer is completed */}
+                                        {offerData.isCompleted && offerData.client && request.clientAddress &&
+                                            request.clientAddress.toLowerCase() === offerData.client.toLowerCase() ? (
+                                            <div style={{ 
+                                                padding: '6px 12px', 
+                                                backgroundColor: '#f6ffed', 
+                                                borderRadius: '4px', 
+                                                marginTop: '8px' 
+                                            }}>
+                                                <Text style={{ color: '#52c41a', fontSize: '12px' }}>
+                                                    ✅ Marked Complete
+                                                </Text>
+                                            </div>
+                                        ) :
+                                        // Only show actions if not rejected and not completed
+                                        (!request.isRejected && (!offerData.isCompleted || !offerData.client || request.clientAddress.toLowerCase() !== offerData.client.toLowerCase())) && (
                                             <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                                                 <Button 
                                                     type="primary"
@@ -338,19 +353,6 @@ const OwnerActionsCard = React.memo(function OwnerActionsCard({ offerData, onUpd
                                                 >
                                                     Reject (Refund Client)
                                                 </Button>
-                                            </div>
-                                        )}
-
-                                        {request.isApproved && (
-                                            <div style={{ 
-                                                padding: '6px 12px', 
-                                                backgroundColor: '#f6ffed', 
-                                                borderRadius: '4px', 
-                                                marginTop: '8px' 
-                                            }}>
-                                                <Text style={{ color: '#52c41a', fontSize: '12px' }}>
-                                                    ✅ Marked Complete
-                                                </Text>
                                             </div>
                                         )}
 

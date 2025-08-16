@@ -1,6 +1,28 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+// Reusable status message component
+function StatusMessage({ type, children }) {
+    let bg, color, icon;
+    switch (type) {
+        case 'rejected':
+            bg = '#fff2f0'; color = '#cf1322'; icon = '❌'; break;
+        case 'completed':
+            bg = '#e6f7ff'; color = '#1890ff'; icon = '🎉'; break;
+        case 'inprogress':
+            bg = '#f6ffed'; color = '#52c41a'; icon = '✅'; break;
+        case 'pending':
+            bg = '#fff7e6'; color = '#d48806'; icon = '⏳'; break;
+        default:
+            bg = '#f5f5f5'; color = '#666'; icon = null;
+    }
+    return (
+        <div style={{ textAlign: 'center', padding: 16, backgroundColor: bg, borderRadius: 6 }}>
+            <span style={{ color, fontSize: 20, marginRight: 6 }}>{icon}</span>
+            <span style={{ color }}>{children}</span>
+        </div>
+    );
+}
 import { 
     Card, 
     Typography, 
@@ -230,9 +252,16 @@ export default function ClientActionsCard({ offerData, onUpdate }) {
 
                     {/* Application Status */}
                     <div style={{ textAlign: 'center' }}>
-                        <Text strong style={{ color: status.color === 'default' ? '#666' : status.color }}>
-                            Status: {status.text}
-                        </Text>
+                        {/* Only show Status: ... if no StatusMessage is being shown */}
+                        {!(userApplication?.isRejected
+                            || (walletClient && offerData.isCompleted && offerData.client && walletClient.account.address && offerData.client.toLowerCase() === walletClient.account.address.toLowerCase())
+                            || (walletClient && offerData.isAccepted && offerData.isFunded && offerData.client && walletClient.account.address && offerData.client.toLowerCase() === walletClient.account.address.toLowerCase())
+                            || (hasApplied && !isApproved && !userApplication?.isRejected)
+                        ) && (
+                            <Text strong style={{ color: status.color === 'default' ? '#666' : status.color }}>
+                                Status: {status.text}
+                            </Text>
+                        )}
                         {hasApplied && userApplication && (
                             <div style={{ marginTop: 8, padding: 8, backgroundColor: '#f5f5f5', borderRadius: 4 }}>
                                 <Text type="secondary" style={{ fontSize: '12px' }}>
@@ -260,29 +289,17 @@ export default function ClientActionsCard({ offerData, onUpdate }) {
                         </Button>
                     )}
 
-                    {hasApplied && !isApproved && !userApplication?.isRejected && (
-                        <div style={{ textAlign: 'center', padding: 16, backgroundColor: '#fff7e6', borderRadius: 6 }}>
-                            <Text style={{ color: '#d48806' }}>
-                                ⏳ Your application is being reviewed by the owner
-                            </Text>
-                        </div>
-                    )}
-
-                    {userApplication?.isRejected && (
-                        <div style={{ textAlign: 'center', padding: 16, backgroundColor: '#fff2f0', borderRadius: 6 }}>
-                            <Text style={{ color: '#cf1322' }}>
-                                ❌ Your application was not selected for this offer
-                            </Text>
-                        </div>
-                    )}
-
-                    {offerData.isAccepted && offerData.isFunded && (
-                        <div style={{ textAlign: 'center', padding: 16, backgroundColor: '#f6ffed', borderRadius: 6 }}>
-                            <Text style={{ color: '#52c41a' }}>
-                                ✅ Payment sent! Work is now in progress
-                            </Text>
-                        </div>
-                    )}
+                    {/* Improved status message logic for readability */}
+                    {/* Use StatusMessage component for clarity and reuse */}
+                    {userApplication?.isRejected ? (
+                        <StatusMessage type="rejected">Your application was not selected for this offer</StatusMessage>
+                    ) : walletClient && offerData.isCompleted && offerData.client && walletClient.account.address && offerData.client.toLowerCase() === walletClient.account.address.toLowerCase() ? (
+                        <StatusMessage type="completed">Work has been marked completed by the owner. Thank you!</StatusMessage>
+                    ) : walletClient && offerData.isAccepted && offerData.isFunded && offerData.client && walletClient.account.address && offerData.client.toLowerCase() === walletClient.account.address.toLowerCase() ? (
+                        <StatusMessage type="inprogress">Payment sent! Work is now in progress</StatusMessage>
+                    ) : hasApplied && !isApproved && !userApplication?.isRejected ? (
+                        <StatusMessage type="pending">Your application is being reviewed by the owner</StatusMessage>
+                    ) : null}
 
                     <Button 
                         size="large" 

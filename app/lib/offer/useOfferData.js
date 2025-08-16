@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
-import { getMetadata } from '../../util/appContractViem';
+import { getMetadata, getOfferRequests } from '../../util/appContractViem';
 
 // Simple cache to prevent re-fetching
 const dataCache = new Map();
@@ -31,10 +31,14 @@ export default function useOfferData(offerId) {
             return;
         }
 
+
         const fetchData = async () => {
             try {
                 console.log('Fetching offer data for contract:', offerId);
-                const metadata = await getMetadata(null, offerId);
+                const [metadata, requests] = await Promise.all([
+                    getMetadata(null, offerId),
+                    getOfferRequests(null, offerId)
+                ]);
                 if (!metadata) {
                     throw new Error('No metadata returned from contract');
                 }
@@ -53,7 +57,8 @@ export default function useOfferData(offerId) {
                     client: metadata.client,
                     isAccepted: metadata.isAccepted,
                     isFunded: metadata.isFunded,
-                    isCompleted: metadata.isCompleted
+                    isCompleted: metadata.isCompleted,
+                    claimCount: Array.isArray(requests) ? requests.length : 0
                 };
                 if (!cancelled) {
                     dataCache.set(offerId, data);

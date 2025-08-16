@@ -19,7 +19,7 @@ export default function MyOffersPage() {
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <Title level={2}>Recent Offers</Title>
           <Paragraph type="secondary">
-            These are offers you have recently created on this device. This list is stored locally and may not include all offers you own on-chain.
+            These are offers you have recently created on this device.
           </Paragraph>
         </div>
         {loading ? (

@@ -125,8 +125,9 @@ export default function OfferPage({ params }) {
         );
     }
 
+    // Gradient background should cover the entire viewport, including under the footer
     return (
-        <div style={{ minHeight: '100vh', background: '#f8fafc', padding: 0 }}>
+        <div style={{ minHeight: '100vh', width: '100vw', background: 'linear-gradient(135deg, #ec348b 0%, #722ed1 100%)', padding: 0, overflowX: 'hidden', margin: 0, position: 'relative', zIndex: 0 }}>
             {/* Owner View Tag at Top */}
             {isOwner && (
                 <div style={{ width: '100%', background: 'rgba(255, 215, 0, 0.12)', padding: '12px 0', textAlign: 'center', zIndex: 10 }}>
@@ -136,61 +137,100 @@ export default function OfferPage({ params }) {
             {/* Hero Section */}
             <div style={{
                 width: '100%',
-                background: 'linear-gradient(135deg, #ec348b 0%, #722ed1 100%)',
                 color: 'white',
-                padding: '72px 0 48px 0',
-                marginBottom: 40,
-                boxShadow: '0 4px 24px 0 rgba(114,46,209,0.08)'
+                padding: '96px 0 64px 0',
+                marginBottom: 0,
+                boxShadow: '0 8px 32px 0 rgba(114,46,209,0.10)',
+                background: 'linear-gradient(120deg, rgba(255,255,255,0.04) 0%, rgba(236,52,139,0.08) 100%)',
+                transition: 'box-shadow 0.3s, background 0.3s'
             }}>
-                <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
+                <div style={{ width: '100%', margin: 0, padding: '0 32px' }}>
                     <div style={{
-                        background: 'rgba(20, 20, 40, 0.72)',
-                        borderRadius: 18,
-                        boxShadow: '0 4px 24px 0 rgba(0,0,0,0.10)',
-                        padding: '40px 32px',
+                        background: 'rgba(20, 20, 40, 0.85)',
+                        borderRadius: 28,
+                        boxShadow: '0 8px 40px 0 rgba(0,0,0,0.16)',
+                        padding: '56px 48px',
                         display: 'flex',
-                        flexDirection: 'column',
-                        gap: 32,
-                        backdropFilter: 'blur(2px)'
+                        flexDirection: 'row',
+                        gap: 64,
+                        backdropFilter: 'blur(6px)',
+                        border: '1.5px solid rgba(255,255,255,0.10)',
+                        transition: 'box-shadow 0.3s, background 0.3s, border 0.3s'
                     }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-                            <div style={{ flex: 1 }}>
-                                <h1 style={{ fontSize: 38, fontWeight: 700, margin: 0, color: 'white', letterSpacing: '-1px' }}>{offerData.title}</h1>
-                                <div style={{ marginTop: 12, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                                    <Tag color="blue">{offerData.category}</Tag>
-                                    {/* <Tag color="purple">{offerData.businessType}</Tag> */}
-                                    <Tag color={offerData.isActive ? 'green' : 'red'}>{offerData.isActive ? 'Active' : 'Inactive'}</Tag>
-                                    {isOwner && <Tag color="gold">Owner View</Tag>}
+                        {/* Offer Details Left (wider, no price) */}
+                        <div style={{ flex: 2.5, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
+                                <div style={{ flex: 1 }}>
+                                    <h1 style={{ fontSize: 48, fontWeight: 800, margin: 0, color: 'white', letterSpacing: '-1.5px', lineHeight: 1.08, textShadow: '0 2px 12px rgba(114,46,209,0.10)' }}>{offerData.title}</h1>
+                                    <div style={{ marginTop: 18, display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                                        <Tag color="blue" style={{ fontSize: 16, padding: '2px 16px', borderRadius: 8 }}>{offerData.category}</Tag>
+                                        {/* <Tag color="purple">{offerData.businessType}</Tag> */}
+                                        <Tag color={offerData.isActive ? 'green' : 'red'} style={{ fontSize: 16, padding: '2px 16px', borderRadius: 8 }}>{offerData.isActive ? 'Active' : 'Inactive'}</Tag>
+                                        {/* {isOwner && <Tag color="gold" style={{ fontSize: 16, padding: '2px 16px', borderRadius: 8 }}>Owner View</Tag>} */}
+                                    </div>
+                                    {/* Subtle contract link below tags */}
+                                    {offerId && (
+                                        <div style={{ marginTop: 10 }}>
+                                            <a
+                                                href={require('../../constants').getExplorerLink(offerId, 'address', require('../../constants').ACTIVE_CHAIN.id)}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                style={{
+                                                    color: 'rgba(255,255,255,0.7)',
+                                                    fontSize: 14,
+                                                    textDecoration: 'underline dotted',
+                                                    wordBreak: 'break-all',
+                                                    transition: 'color 0.2s',
+                                                }}
+                                                onMouseOver={e => (e.currentTarget.style.color = '#fff')}
+                                                onMouseOut={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.7)')}
+                                            >
+                                                View contract on Explorer
+                                            </a>
+                                        </div>
+                                    )}
                                 </div>
+                                {/* Price removed from here, now only in action card */}
                             </div>
-                            <div style={{ minWidth: 180, textAlign: 'right' }}>
-                                <div style={{ fontSize: 22, fontWeight: 600, color: 'white' }}>{offerData.amount} PYUSD</div>
+                            <div style={{ marginTop: 24 }}>
+                                <Paragraph style={{ fontSize: '18px', lineHeight: '1.7', color: 'white', margin: 0, opacity: 0.96 }}>{offerData.description}</Paragraph>
+                            </div>
+                            <div style={{ marginTop: 32 }}>
+                                <Row gutter={[32, 20]}>
+                                    <Col xs={12} sm={6}>
+                                        <div style={{ color: 'white' }}>
+                                            <div style={{ fontSize: 15, opacity: 0.7 }}>Amount</div>
+                                            <div style={{ fontSize: 22, fontWeight: 700 }}>{offerData.amount} PYUSD</div>
+                                        </div>
+                                    </Col>
+                                    <Col xs={12} sm={6}>
+                                        <div style={{ color: 'white' }}>
+                                            <div style={{ fontSize: 15, opacity: 0.7 }}>Claims</div>
+                                            <div style={{ fontSize: 22, fontWeight: 700 }}>{offerData.claimCount}</div>
+                                        </div>
+                                    </Col>
+                                    <Col xs={12} sm={6}>
+                                        <div style={{ color: 'white' }}>
+                                            <div style={{ fontSize: 15, opacity: 0.7 }}>Created</div>
+                                            <div style={{ fontSize: 22, fontWeight: 700 }}>{offerData.createdAt ? new Date(offerData.createdAt).toLocaleDateString() : ''}</div>
+                                        </div>
+                                    </Col>
+                                </Row>
                             </div>
                         </div>
-                        <div style={{ marginTop: 12 }}>
-                            <Paragraph style={{ fontSize: '16px', lineHeight: '1.6', color: 'white', margin: 0 }}>{offerData.description}</Paragraph>
-                        </div>
-                        <div style={{ marginTop: 12 }}>
-                            <Row gutter={[24, 16]}>
-                                <Col xs={12} sm={6}>
-                                    <div style={{ color: 'white' }}>
-                                        <div style={{ fontSize: 13, opacity: 0.7 }}>Amount</div>
-                                        <div style={{ fontSize: 20, fontWeight: 600 }}>{offerData.amount} PYUSD</div>
-                                    </div>
-                                </Col>
-                                <Col xs={12} sm={6}>
-                                    <div style={{ color: 'white' }}>
-                                        <div style={{ fontSize: 13, opacity: 0.7 }}>Claims</div>
-                                        <div style={{ fontSize: 20, fontWeight: 600 }}>{offerData.claimCount}</div>
-                                    </div>
-                                </Col>
-                                <Col xs={12} sm={6}>
-                                    <div style={{ color: 'white' }}>
-                                        <div style={{ fontSize: 13, opacity: 0.7 }}>Created</div>
-                                        <div style={{ fontSize: 20, fontWeight: 600 }}>{offerData.createdAt ? new Date(offerData.createdAt).toLocaleDateString() : ''}</div>
-                                    </div>
-                                </Col>
-                            </Row>
+                        {/* Take Action Card Right */}
+                        <div style={{ flex: 1, minWidth: 320, maxWidth: 420, alignSelf: 'flex-start' }}>
+                            {isOwner ? (
+                                <OwnerActionsCard 
+                                    offerData={offerData} 
+                                    onUpdate={debouncedRefetch}
+                                />
+                            ) : (
+                                <ClientActionsCard 
+                                    offerData={offerData} 
+                                    onUpdate={debouncedRefetch}
+                                />
+                            )}
                         </div>
                     </div>
                 </div>
@@ -198,25 +238,7 @@ export default function OfferPage({ params }) {
 
             {/* Main Content - Offer Details Full Width (removed, now in summary) */}
 
-            {/* Offer & Requests Actions Full Width Below */}
-            <div style={{ maxWidth: 1200, margin: '32px auto 0 auto', padding: '0 24px 48px 24px', background: '#fff', borderRadius: 16, boxShadow: '0 2px 16px 0 rgba(0,0,0,0.04)' }}>
-                {isOwner ? (
-                    <div>
-                        <div style={{ height: 24 }}>
-                            {/* <Title level={3} style={{ margin: 0 }}>Owner Dashboard</Title> */}
-                        </div>
-                        <OwnerActionsCard 
-                            offerData={offerData} 
-                            onUpdate={debouncedRefetch}
-                        />
-                    </div>
-                ) : (
-                    <ClientActionsCard 
-                        offerData={offerData} 
-                        onUpdate={debouncedRefetch}
-                    />
-                )}
-            </div>
+            {/* Offer & Requests Actions now integrated above */}
 
             {/* Created At Timestamp at Bottom */}
         </div>
