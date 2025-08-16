@@ -126,58 +126,55 @@ export default function OfferPage({ params }) {
     }
 
     return (
-        <div style={{ minHeight: '100vh', background: '#f5f5f5', padding: '40px 24px' }}>
-            <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-                {/* Header */}
-                <div style={{ textAlign: 'center', marginBottom: 32 }}>
-                    <Logo style={{ marginBottom: 16 }} />
-                    <div style={{ marginBottom: 16 }}>
-                        {isOwner && (<div>
-                               <Tag color={offerData.isActive ? 'green' : 'red'} style={{ fontSize: '14px', padding: '4px 12px' }}>
-                            {offerData.isActive ? 'Active' : 'Inactive'}
-                        </Tag>
-                            <Tag color="gold" style={{ fontSize: '14px', padding: '4px 12px', marginLeft: 8 }}>
-                                Owner View
-                            </Tag>
+        <div style={{ minHeight: '100vh', background: '#f8fafc', padding: 0 }}>
+            {/* Hero Section */}
+            <div style={{
+                width: '100%',
+                background: 'linear-gradient(135deg, #ec348b 0%, #722ed1 100%)',
+                color: 'white',
+                padding: '72px 0 48px 0',
+                marginBottom: 40,
+                boxShadow: '0 4px 24px 0 rgba(114,46,209,0.08)'
+            }}>
+                <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+                        <div style={{ flex: 1 }}>
+                            <h1 style={{ fontSize: 38, fontWeight: 700, margin: 0, color: 'white', letterSpacing: '-1px' }}>{offerData.title}</h1>
+                            <div style={{ marginTop: 12, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                                <Tag color="blue">{offerData.category}</Tag>
+                                <Tag color="purple">{offerData.businessType}</Tag>
+                                <Tag color={offerData.isActive ? 'green' : 'red'}>{offerData.isActive ? 'Active' : 'Inactive'}</Tag>
+                                {isOwner && <Tag color="gold">Owner View</Tag>}
                             </div>
-                        )}
+                        </div>
+                        <div style={{ minWidth: 180, textAlign: 'right' }}>
+                            <div style={{ fontSize: 22, fontWeight: 600, color: 'white' }}>{offerData.amount} PYUSD</div>
+                        </div>
                     </div>
-                </div>
-
-                {/* Main Content */}
-                {isOwner ? (
-                    <div>
-                        <OfferDetailsCard offerData={offerData} onDeactivate={debouncedRefetch} />
-                        <OwnerActionsCard 
-                            offerData={offerData} 
-                            onUpdate={debouncedRefetch}
-                        />
-                    </div>
-                ) : (
-                    <Row gutter={[24, 24]}>
-                        {/* Left Column - Offer Details */}
-                        <Col xs={24} lg={16}>
-                            <OfferDetailsCard offerData={offerData} />
-                        </Col>
-                        {/* Right Column - Client Actions */}
-                        <Col xs={24} lg={8}>
-                            <ClientActionsCard 
-                                offerData={offerData} 
-                                onUpdate={debouncedRefetch}
-                            />
-                        </Col>
-                    </Row>
-                )}
-
-                {/* Owner's Other Offers Section removed; now available at /my-offers */}
-
-                {/* Back Button */}
-                <div style={{ textAlign: 'center', marginTop: 32 }}>
-                    <Button onClick={() => router.push('/')}>
-                        Back to Home
-                    </Button>
                 </div>
             </div>
+
+            {/* Main Content - Offer Details Full Width */}
+            <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px 0 24px', background: '#fff', borderRadius: 16, boxShadow: '0 2px 16px 0 rgba(0,0,0,0.04)' }}>
+                <OfferDetailsCard offerData={offerData} onDeactivate={isOwner ? debouncedRefetch : undefined} />
+            </div>
+
+            {/* Offer & Requests Actions Full Width Below */}
+            <div style={{ maxWidth: 1200, margin: '32px auto 0 auto', padding: '0 24px 48px 24px', background: '#fff', borderRadius: 16, boxShadow: '0 2px 16px 0 rgba(0,0,0,0.04)' }}>
+                {isOwner ? (
+                    <OwnerActionsCard 
+                        offerData={offerData} 
+                        onUpdate={debouncedRefetch}
+                    />
+                ) : (
+                    <ClientActionsCard 
+                        offerData={offerData} 
+                        onUpdate={debouncedRefetch}
+                    />
+                )}
+            </div>
+
+            {/* Created At Timestamp at Bottom */}
         </div>
     );
 }

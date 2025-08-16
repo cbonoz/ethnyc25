@@ -45,7 +45,7 @@ export default function About() {
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 24px' }}>
             {/* Header Section */}
             <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-                <Logo style={{ marginBottom: '24px' }} />
+                {/* <Logo style={{ marginBottom: '24px' }} /> */}
                 <Title level={1} style={{ marginBottom: '16px', fontSize: '48px' }}>
                     About {APP_NAME}
                 </Title>
@@ -213,7 +213,7 @@ export default function About() {
                         <Button 
                             type="default" 
                             size="large"
-                            href="https://github.com/cbonoz/modular25" 
+                            href="https://github.com/cbonoz/ethnyc25" 
                             target="_blank"
                             icon={<CodeOutlined />}
                         >

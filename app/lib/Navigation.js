@@ -44,11 +44,15 @@ export default function Navigation() {
             style={{
                 background: '#fff',
                 padding: 0,
-                borderBottom: '1px solid #f0f0f0',
+                // borderBottom removed to avoid double border
                 boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
                 overflowX: 'auto',
                 whiteSpace: 'nowrap',
                 minWidth: 0,
+                minHeight: 56,
+                height: 56,
+                display: 'flex',
+                alignItems: 'center',
             }}
         >
             <div
@@ -60,13 +64,15 @@ export default function Navigation() {
                     alignItems: 'center',
                     flexWrap: 'nowrap',
                     gap: 12,
+                    width: '100%',
+                    height: 56,
                 }}
             >
                 <div
-                    style={{ cursor: 'pointer', flex: '0 0 auto' }}
+                    style={{ cursor: 'pointer', flex: '0 0 auto', height: 40, display: 'flex', alignItems: 'center' }}
                     onClick={() => router.push('/')}
                 >
-                    <Logo size="small" />
+                    <Logo size="small" style={{ height: 32 }} />
                 </div>
                 <div
                     style={{

@@ -384,9 +384,9 @@ const OwnerActionsCard = React.memo(function OwnerActionsCard({ offerData, onUpd
                     <Button 
                         type="primary" 
                         size="large" 
-                        block
                         icon={<ShareAltOutlined />}
                         onClick={handleShareOffer}
+                        style={{ minWidth: 160 }}
                     >
                         Share Offer Link
                     </Button>
@@ -396,12 +396,12 @@ const OwnerActionsCard = React.memo(function OwnerActionsCard({ offerData, onUpd
                         <Button 
                             type="default"
                             size="large" 
-                            block
                             icon={<CloseCircleOutlined />}
                             onClick={handleDeactivateOffer}
                             loading={loadingDeactivate}
                             disabled={loadingDeactivate || loadingComplete || loadingReject}
                             danger
+                            style={{ minWidth: 160 }}
                         >
                             Deactivate Offer
                         </Button>
@@ -412,11 +412,10 @@ const OwnerActionsCard = React.memo(function OwnerActionsCard({ offerData, onUpd
                     {offerData.isCompleted && parseFloat(contractBalance) > 0 && (
                         <Button 
                             size="large" 
-                            block
                             icon={<WalletOutlined />}
                             onClick={handleWithdrawFunds}
                             loading={loading}
-                            style={{ backgroundColor: '#722ed1', borderColor: '#722ed1', color: 'white' }}
+                            style={{ backgroundColor: '#722ed1', borderColor: '#722ed1', color: 'white', minWidth: 180 }}
                         >
                             Withdraw Funds ({contractBalance} PYUSD)
                         </Button>

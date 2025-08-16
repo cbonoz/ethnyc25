@@ -106,18 +106,6 @@ const OfferDetailsCard = React.memo(function OfferDetailsCard({ offerData, onDea
                     </div>
                 </Col>
             </Row>
-            {/* Deactivate Offer Button for Owner */}
-            {offerData.isActive && (
-                <div style={{ marginTop: 24, textAlign: 'right' }}>
-                    <Button
-                        danger
-                        loading={loading}
-                        onClick={handleDeactivate}
-                    >
-                        Deactivate Offer
-                    </Button>
-                </div>
-            )}
         </Card>
     );
 });
