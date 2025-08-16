@@ -16,14 +16,16 @@ export default function Navigation() {
     const router = useRouter();
     const pathname = usePathname();
 
+    // Hide 'Create Offer' and 'My Offers' tabs on /offer pages
+    const isOfferPage = pathname.startsWith('/offer');
     const navItems = [
-        {
+        !isOfferPage && {
             key: 'create',
             label: 'Create Offer',
             icon: <PlusOutlined />, 
             path: '/create'
         },
-        {
+        !isOfferPage && {
             key: 'my-offers',
             label: 'My Offers',
             icon: <HomeOutlined style={{ color: '#722ed1' }} />, // You can replace with a better icon
@@ -35,7 +37,7 @@ export default function Navigation() {
             icon: <InfoCircleOutlined />, 
             path: '/about'
         }
-    ];
+    ].filter(Boolean);
 
     // Navigation is now always visible
 

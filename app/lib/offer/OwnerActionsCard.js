@@ -330,7 +330,7 @@ const OwnerActionsCard = React.memo(function OwnerActionsCard({ offerData, onUpd
                                         ) :
                                         // Only show actions if not rejected and not completed
                                         (!request.isRejected && (!offerData.isCompleted || !offerData.client || request.clientAddress.toLowerCase() !== offerData.client.toLowerCase())) && (
-                                            <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                            <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                                 <Button 
                                                     type="primary"
                                                     size="small"
@@ -338,7 +338,7 @@ const OwnerActionsCard = React.memo(function OwnerActionsCard({ offerData, onUpd
                                                     onClick={handleCompleteOffer}
                                                     loading={loadingComplete}
                                                     disabled={loadingComplete || loadingDeactivate || loadingReject}
-                                                    style={{ backgroundColor: '#52c41a', borderColor: '#52c41a', flex: '1 1 140px', minWidth: 120 }}
+                                                    style={{ backgroundColor: '#52c41a', borderColor: '#52c41a', width: '100%' }}
                                                 >
                                                     Mark as Completed
                                                 </Button>
@@ -349,7 +349,7 @@ const OwnerActionsCard = React.memo(function OwnerActionsCard({ offerData, onUpd
                                                     onClick={() => handleRejectRequest(request.clientAddress)}
                                                     loading={loadingReject === request.clientAddress}
                                                     disabled={loadingReject === request.clientAddress || loadingComplete || loadingDeactivate}
-                                                    style={{ flex: '1 1 140px', minWidth: 120 }}
+                                                    style={{ width: '100%' }}
                                                 >
                                                     Reject (Refund Client)
                                                 </Button>

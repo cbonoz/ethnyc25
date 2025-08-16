@@ -259,7 +259,7 @@ export default function ClientActionsCard({ offerData, onUpdate }) {
                             || (hasApplied && !isApproved && !userApplication?.isRejected)
                         ) && (
                             <Text strong style={{ color: status.color === 'default' ? '#666' : status.color }}>
-                                Status: {status.text}
+                                {status.text}
                             </Text>
                         )}
                         {hasApplied && userApplication && (

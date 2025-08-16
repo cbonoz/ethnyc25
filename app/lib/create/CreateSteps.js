@@ -16,7 +16,7 @@ export const CREATE_STEPS = [
     },
     {
         title: 'Payment Terms',
-        description: 'Set pricing and payment structure',
+        description: 'Set stablecoin pricing and payment structure',
         icon: <DollarOutlined />
     },
     {

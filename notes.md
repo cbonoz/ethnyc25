@@ -1,5 +1,5 @@
 <p align='center'>
-
+    <img src="https://i.ibb.co/svNK8RQd/logo.png" width=600 />
 </p>
 
 
@@ -7,6 +7,13 @@ SimpleOffer
 ---
 
 One click form collection and payments backed by smart contracts for any service backed by PYUSD.
+
+
+Demo: simpleoffer.vercel.app
+
+Example offer page: https://simpleoffer.vercel.app/offer/0xb387367720ae37E132DF0E0fDEC84A9b4074A83C (Sepolia)
+
+Demo video: 
 
 ## Problem
 
