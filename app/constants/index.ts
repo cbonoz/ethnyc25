@@ -1,6 +1,4 @@
 import {
-    filecoin,
-    filecoinCalibration,
     sepolia
 } from '@wagmi/core/chains';
 
@@ -35,6 +33,7 @@ export const PYUSD_TOKEN_ADDRESS = process.env.NEXT_PUBLIC_NETWORK === 'mainnet'
     ? '0xReplaceWithMainnetPYUSD'
     : '0xReplaceWithTestnetPYUSD';
 
+export const IPFS_BASE_URL = 'https://ipfs.example.com';
 
 export const MAX_FILE_SIZE_BYTES = 5000000; // 5MB
 // Dynamic, Nora, ENS, and other integrations (add more as needed)

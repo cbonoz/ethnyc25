@@ -16,7 +16,7 @@ const CHECKLIST_ITEMS = [
 ];
 
 const HERO_IMAGE =
-	'https://cdn.dribbble.com/userupload/42353513/file/original-94c2a36d73ffb6352c3a84f73c9e3a4f.gif';
+	'https://media.giphy.com/media/3oKIPEqDGUULpEU0aQ/giphy.gif';
 
 const Home = () => {
 	const router = useRouter();
@@ -29,11 +29,11 @@ const Home = () => {
 			}}
 		>
 			{/* Hero Section */}
-			<div style={{ padding: '80px 24px' }}>
+			<div style={{ padding: '80px 48px' }}>
 				<Row
-					gutter={[48, 48]}
+					gutter={[64, 48]}
 					align="middle"
-					style={{ minHeight: '70vh', maxWidth: '1200px', margin: '0 auto' }}
+					style={{ minHeight: '70vh', maxWidth: '1400px', margin: '0 auto' }}
 				>
 					<Col xs={24} lg={12}>
 						<Space direction="vertical" size="large" style={{ width: '100%' }}>
@@ -143,7 +143,7 @@ const Home = () => {
 				</Row>
 
 				{/* Features Section */}
-				<div style={{ padding: '80px 0', maxWidth: '1200px', margin: '0 auto' }}>
+				<div style={{ padding: '80px 0', maxWidth: '1400px', margin: '0 auto' }}>
 					<div style={{ textAlign: 'center', marginBottom: '64px' }}>
 						<h2
 							style={{
@@ -159,7 +159,7 @@ const Home = () => {
 							style={{
 								fontSize: '20px',
 								color: '#6b7280',
-								maxWidth: '768px',
+								maxWidth: '900px',
 								margin: '0 auto'
 							}}
 						>
@@ -167,7 +167,7 @@ const Home = () => {
 						</p>
 					</div>
 
-					<Row gutter={[32, 32]}>
+					<Row gutter={[48, 32]}>
 						<Col xs={24} md={8}>
 							<div
 								style={{
@@ -295,7 +295,7 @@ const Home = () => {
 
 				{/* CTA Section */}
 				<div
-					style={{ textAlign: 'center', padding: '80px 0', maxWidth: '1200px', margin: '0 auto' }}
+					style={{ textAlign: 'center', padding: '80px 0', maxWidth: '1400px', margin: '0 auto' }}
 				>
 					<div
 						style={{

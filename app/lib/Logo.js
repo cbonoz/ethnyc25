@@ -5,8 +5,8 @@ import Image from 'next/image';
 import { APP_NAME } from '../constants';
 
 const Logo = ({ 
-    width = 180, 
-    height = 30, 
+    width = 200, 
+    height = 40, 
     className = '',
     style = {},
     ...props 
@@ -18,7 +18,12 @@ const Logo = ({
             width={width}
             height={height}
             className={className}
-            style={style}
+            style={{
+                objectFit: 'contain',
+                maxWidth: '100%',
+                height: 'auto',
+                ...style
+            }}
             {...props}
         />
     );
