@@ -6,7 +6,7 @@
 SimpleOffer
 ---
 
-One click form collection and payments backed by smart contracts for any service backed by PYUSD.
+One click form collection and stablecoin payments backed by smart contracts for any service.
 
 
 Demo: https://simpleoffer.vercel.app
@@ -56,13 +56,23 @@ Existing solutions partially address these problems, but often have limitations 
 
 ### Technology Breakdown
 
-
 #### Dynamic
 Dynamic provides wallet-based authentication for both clients and service providers, enabling seamless login and contract interaction through viem integration. Email enforcement and connection on offer pages ensure that users are verified and actionable. The frontend is integrated for one-click wallet connect, offer creation, and payment flows, making the platform accessible to everyone—not just Web3 experts. Looking ahead, the roadmap includes support for more chains, on-chain deployed status, and discount codes based on Dynamic groups.
 
+**Locations used:**
+- Offer details page: Enforces wallet connection and email verification before allowing actions.
+- Create Offer flow: Handles authentication and wallet onboarding for new service providers.
+- Navigation and session management: Maintains user state and enables seamless wallet switching.
 
 #### PYUSD
-PYUSD enables stable, non-volatile payments for businesses and freelancers. All deposits, milestone completions, and offers are settled in PYUSD, ensuring predictable value transfer without banking fees or volatility risk.
+PYUSD enables stable, non-volatile payments for businesses and freelancers. All deposits, milestone completions, and offers are settled in PYUSD, ensuring predictable value transfer without banking fees or volatility risk. SimpleOffer is also able to eliminate traditional payment processing fees, chargebacks, and delay as only a wallet is needed to receive and use PYUSD.
+
+All transactions are recorded on-chain, providing transparent, tamper-proof records for accounting, compliance, and dispute resolution for whether a payment was made or not.
+
+**Locations used:**
+- Offer contract: All payments, deposits, and milestone releases are denominated and settled in PYUSD.
+- Payment modal: Users fund offers and pay for services using PYUSD stablecoin.
+- Transaction history: On-chain records show all PYUSD transfers for offers and claims.
 
 #### Hardhat
 A contract is deployed for every offer page. We use hardhat to ensure there won't be any errors and enable the test ABI to be built and transferred as part of the deploy process to the SingleOffer app.
@@ -70,14 +80,10 @@ The SingleOffer contract has a local script in `update-metadata.js` which automa
 
 SingleOffer also has both an ignition module for command line contract deployments and solidity unit tests as part of the build.
 
----
-
-**Key Differentiators:**
-
-- Fully **decentralized** and **trustless** payments
-- **AI-assisted smart contracts** (no Solidity knowledge required)
-- **One-click form collection** reduces friction for clients
-- Optional **readable ENS profiles** for trust and reputation
+**Locations used:**
+- Contract deployment: Each new offer page triggers a Hardhat deployment of a unique contract.
+- Build pipeline: Hardhat compiles contracts and generates ABIs/types for frontend integration.
+- Automated testing: Hardhat runs JS/TS and Solidity tests to validate behavior.
 
 ---
 
@@ -106,9 +112,6 @@ SingleOffer also has both an ignition module for command line contract deploymen
 - Lower fees and more transparency than traditional platforms
 - Recurring revenue from SaaS features and B2B analytics
 - Value-added services create new business opportunities
-
-**Revenue Projections:**
-With 1000 active contracts/month at $2000 average value, transaction fees alone could generate $10-20K monthly, with additional recurring revenue from subscriptions and enterprise tiers.
 
 ---
 
