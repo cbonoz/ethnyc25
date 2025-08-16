@@ -17,9 +17,9 @@ export default function MyOffersPage() {
     <div style={{ minHeight: "100vh", background: "#f5f5f5", padding: "40px 24px" }}>
       <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: 32 }}>
-          <Title level={2}>My Offers</Title>
+          <Title level={2}>Recent Offers</Title>
           <Paragraph type="secondary">
-            View and manage all offers you have created as an owner.
+            These are offers you have recently created on this device. This list is stored locally and may not include all offers you own on-chain.
           </Paragraph>
         </div>
         {loading ? (

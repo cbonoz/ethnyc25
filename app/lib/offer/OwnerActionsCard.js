@@ -206,7 +206,7 @@ const OwnerActionsCard = React.memo(function OwnerActionsCard({ offerData, onUpd
             title={
                 <Space>
                     <SettingOutlined />
-                    Owner Dashboard
+                    Manage Offers
                 </Space>
             } 
             style={{ position: 'sticky', top: '24px' }}

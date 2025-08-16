@@ -127,6 +127,12 @@ export default function OfferPage({ params }) {
 
     return (
         <div style={{ minHeight: '100vh', background: '#f8fafc', padding: 0 }}>
+            {/* Owner View Tag at Top */}
+            {isOwner && (
+                <div style={{ width: '100%', background: 'rgba(255, 215, 0, 0.12)', padding: '12px 0', textAlign: 'center', zIndex: 10 }}>
+                    <Tag color="gold" style={{ fontSize: 16, padding: '4px 18px' }}>Owner View</Tag>
+                </div>
+            )}
             {/* Hero Section */}
             <div style={{
                 width: '100%',
@@ -196,10 +202,13 @@ export default function OfferPage({ params }) {
             <div style={{ maxWidth: 1200, margin: '32px auto 0 auto', padding: '0 24px 48px 24px', background: '#fff', borderRadius: 16, boxShadow: '0 2px 16px 0 rgba(0,0,0,0.04)' }}>
                 {isOwner ? (
                     <div>
-                    <OwnerActionsCard 
-                        offerData={offerData} 
-                        onUpdate={debouncedRefetch}
-                    />
+                        <div style={{ height: 24 }}>
+                            {/* <Title level={3} style={{ margin: 0 }}>Owner Dashboard</Title> */}
+                        </div>
+                        <OwnerActionsCard 
+                            offerData={offerData} 
+                            onUpdate={debouncedRefetch}
+                        />
                     </div>
                 ) : (
                     <ClientActionsCard 

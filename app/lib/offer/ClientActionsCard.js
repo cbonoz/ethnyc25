@@ -20,18 +20,19 @@ import {
 } from '@ant-design/icons';
 import { requestOffer, acceptOffer, fundContract, getOfferRequests, requestAndFundOffer } from '../../util/appContractViem';
 import { useWalletClient } from '../../hooks/useWalletClient';
+import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 
 const { Title, Text, Paragraph } = Typography;
 
 export default function ClientActionsCard({ offerData, onUpdate }) {
     const walletClient = useWalletClient();
+    const { setShowDynamicUserProfile } = useDynamicContext();
     const [loading, setLoading] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
     const [userApplication, setUserApplication] = useState(null);
     const [hasApplied, setHasApplied] = useState(false);
     const [isApproved, setIsApproved] = useState(false);
     const [form] = Form.useForm();
-    
     // Transaction states
     const [isTransactionPending, setIsTransactionPending] = useState(false);
     const [transactionHash, setTransactionHash] = useState(null);
@@ -43,23 +44,18 @@ export default function ClientActionsCard({ offerData, onUpdate }) {
     // Check if user has already applied
     useEffect(() => {
         let isMounted = true;
-        
         const checkUserApplication = async () => {
             if (!walletClient || !offerData?.contractAddress) {
                 return;
             }
-
             try {
                 const userAddress = walletClient.account.address;
                 const applications = await getOfferRequests(walletClient, offerData.contractAddress);
-                
                 if (!isMounted) return; // Component unmounted
-                
                 const userApp = applications.find(app => 
                     app && app.clientAddress && 
                     app.clientAddress.toLowerCase() === userAddress.toLowerCase()
                 );
-                
                 if (userApp) {
                     setUserApplication(userApp);
                     setHasApplied(true);
@@ -71,10 +67,8 @@ export default function ClientActionsCard({ offerData, onUpdate }) {
                 }
             }
         };
-
         // Debounce the call to prevent rapid fire requests
         const timeoutId = setTimeout(checkUserApplication, 300);
-
         return () => {
             isMounted = false;
             clearTimeout(timeoutId);
@@ -83,7 +77,9 @@ export default function ClientActionsCard({ offerData, onUpdate }) {
 
     const handleApply = () => {
         if (!walletClient) {
-            message.error('Please connect your wallet first');
+            if (setShowDynamicUserProfile) {
+                setShowDynamicUserProfile(true);
+            }
             return;
         }
         setModalVisible(true);
@@ -91,27 +87,21 @@ export default function ClientActionsCard({ offerData, onUpdate }) {
 
     const handleSubmitRequest = async (values) => {
         console.log('handleSubmitRequest called with values:', values);
-        
         if (!walletClient) {
             message.error('Please connect your wallet first');
             return;
         }
-
         try {
             setLoading(true);
             setIsTransactionPending(true);
             setModalVisible(false); // Close the modal while transaction is processing
-            
             setTransactionStep('approval');
             message.loading('Step 1: Approving PYUSD tokens...', 0);
-            
             // Use the new combined method - request and fund in one transaction
             const txHash = await requestAndFundOffer(walletClient, offerData.contractAddress, values.message);
-            
             setTransactionStep('complete');
             setTransactionHash(txHash);
             message.destroy(); // Clear the loading message
-            
             // Show success state
             setShowSuccess(true);
             setHasApplied(true);
@@ -139,15 +129,15 @@ export default function ClientActionsCard({ offerData, onUpdate }) {
 
     const getApplicationStatus = () => {
         if (!hasApplied) {
-            return { text: 'Not applied yet', color: 'default' };
+            return { text: 'Offer request not submitted yet', color: 'default' };
         } else if (userApplication?.isRejected) {
-            return { text: 'Application rejected', color: 'red' };
+            return { text: 'Request rejected', color: 'red' };
         } else if (isApproved && !offerData.isAccepted) {
             return { text: 'Approved - Ready to pay', color: 'green' };
         } else if (isApproved && offerData.isAccepted) {
             return { text: 'Paid - Work in progress', color: 'blue' };
         } else {
-            return { text: 'Application pending review', color: 'orange' };
+            return { text: 'Request pending review', color: 'orange' };
         }
     };
 
@@ -218,7 +208,7 @@ export default function ClientActionsCard({ offerData, onUpdate }) {
                             block
                             onClick={() => {
                                 setShowSuccess(false);
-                                window.location.reload(); // Refresh to show updated state
+                                // No auto-refresh; just close the modal
                             }}
                         >
                             Back to Offer
@@ -229,7 +219,7 @@ export default function ClientActionsCard({ offerData, onUpdate }) {
 
             {/* Normal State - only show if not in transaction or success state */}
             {!isTransactionPending && !showSuccess && (
-            <Card title="Take Action" style={{ position: 'sticky', top: '24px' }}>
+            <Card title="Take Action" style={{ position: 'sticky', top: '24px', marginTop: '24px' }}>
                 <Space direction="vertical" style={{ width: '100%' }} size="large">
                     <div style={{ textAlign: 'center' }}>
                         <Title level={3} style={{ color: '#ec348b', margin: 0 }}>
