@@ -1,27 +1,48 @@
----
-
 ## Screenshots
 
-Below are screenshots demonstrating key flows and features of SimpleOffer:
+Screenshots of key flows and features of SimpleOffer
 
-<table>
-    <tbody>
-        <tr><td align="center"><img src="./screenshots/adding_custom_message_to_request.png" width="400" /><br /><b>Adding Custom Message to Request</b><br /><i>adding_custom_message_to_request.png</i></td></tr>
-        <tr><td align="center"><img src="./screenshots/authenticating_with_dynamic.png" width="400" /><br /><b>Authenticating with Dynamic</b><br /><i>authenticating_with_dynamic.png</i></td></tr>
-        <tr><td align="center"><img src="./screenshots/connect_wallet_error_state.png" width="400" /><br /><b>Connect Wallet Error State</b><br /><i>connect_wallet_error_state.png</i></td></tr>
-        <tr><td align="center"><img src="./screenshots/customer_screen_with_sent_request.png" width="400" /><br /><b>Customer Screen with Sent Request</b><br /><i>customer_screen_with_sent_request.png</i></td></tr>
-        <tr><td align="center"><img src="./screenshots/dynamic_xyz_seamless_wallet_change.png" width="400" /><br /><b>Dynamic XYZ Seamless Wallet Change</b><br /><i>dynamic_xyz_seamless_wallet_change.png</i></td></tr>
-        <tr><td align="center"><img src="./screenshots/each_offer_gets_unique_contract.png" width="400" /><br /><b>Each Offer Gets Unique Contract</b><br /><i>each_offer_gets_unique_contract.png</i></td></tr>
-        <tr><td align="center"><img src="./screenshots/example_contract_and_transactions.png" width="400" /><br /><b>Example Contract and Transactions</b><br /><i>example_contract_and_transactions.png</i></td></tr>
-        <tr><td align="center"><img src="./screenshots/home_page.png" width="400" /><br /><b>Home Page</b><br /><i>home_page.png</i></td></tr>
-        <tr><td align="center"><img src="./screenshots/offer_marked_completed.png" width="400" /><br /><b>Offer Marked Completed</b><br /><i>offer_marked_completed.png</i></td></tr>
-        <tr><td align="center"><img src="./screenshots/order_page_created_successfully.png" width="400" /><br /><b>Order Page Created Successfully</b><br /><i>order_page_created_successfully.png</i></td></tr>
-        <tr><td align="center"><img src="./screenshots/owner_page_with_offer.png" width="400" /><br /><b>Owner Page with Offer</b><br /><i>owner_page_with_offer.png</i></td></tr>
-        <tr><td align="center"><img src="./screenshots/sending_pyusd_payment_as_a_visitor.png" width="400" /><br /><b>Sending PYUSD Payment as a Visitor</b><br /><i>sending_pyusd_payment_as_a_visitor.png</i></td></tr>
-        <tr><td align="center"><img src="./screenshots/service_use_cases.png" width="400" /><br /><b>Service Use Cases</b><br /><i>service_use_cases.png</i></td></tr>
-        <tr><td align="center"><img src="./screenshots/Screenshot 2025-08-16 at 5.41.40 PM.png" width="400" /><br /><b>Screenshot 2025-08-16 at 5.41.40 PM</b><br /><i>Screenshot 2025-08-16 at 5.41.40 PM.png</i></td></tr>
-    </tbody>
-</table>
+![Adding Custom Message to Request](./screenshots/adding_custom_message_to_request.png)
+*Adding Custom Message to Request*
+
+![Authenticating with Dynamic](./screenshots/authenticating_with_dynamic.png)
+*Authenticating with Dynamic*
+
+![Connect Wallet Error State](./screenshots/connect_wallet_error_state.png)
+*Connect Wallet Error State*
+
+![Customer Screen with Sent Request](./screenshots/customer_screen_with_sent_request.png)
+*Customer Screen with Sent Request*
+
+![Dynamic XYZ Seamless Wallet Change](./screenshots/dynamic_xyz_seamless_wallet_change.png)
+*Dynamic XYZ Seamless Wallet Change*
+
+![Each Offer Gets Unique Contract](./screenshots/each_offer_gets_unique_contract.png)
+*Each Offer Gets Unique Contract*
+
+![Example Contract and Transactions](./screenshots/example_contract_and_transactions.png)
+*Example Contract and Transactions*
+
+![Home Page](./screenshots/home_page.png)
+*Home Page*
+
+![Offer Marked Completed](./screenshots/offer_marked_completed.png)
+*Offer Marked Completed*
+
+![Order Page Created Successfully](./screenshots/order_page_created_successfully.png)
+*Order Page Created Successfully*
+
+![Owner Page with Offer](./screenshots/owner_page_with_offer.png)
+*Owner Page with Offer*
+
+![Sending PYUSD Payment as a Visitor](./screenshots/sending_pyusd_payment_as_a_visitor.png)
+*Sending PYUSD Payment as a Visitor*
+
+![Service Use Cases](./screenshots/service_use_cases.png)
+*Service Use Cases*
+
+![Screenshot 2025-08-16 at 5.41.40 PM](./screenshots/Screenshot 2025-08-16 at 5.41.40 PM.png)
+*Screenshot 2025-08-16 at 5.41.40 PM*
 <p align='center'>
     <img src="https://i.ibb.co/svNK8RQd/logo.png" width=600 />
 </p>
@@ -33,7 +54,7 @@ SimpleOffer
 One click form collection and payments backed by smart contracts for any service backed by PYUSD.
 
 
-Demo: simpleoffer.vercel.app
+Demo: https://simpleoffer.vercel.app
 
 Example offer page: https://simpleoffer.vercel.app/offer/0xb387367720ae37E132DF0E0fDEC84A9b4074A83C (Sepolia)
 
