@@ -1,4 +1,7 @@
-# EthNYC 25
+<p align='center'>
+
+</p>
+
 
 SimpleOffer
 ---
@@ -32,96 +35,85 @@ Existing solutions partially address these problems, but often have limitations 
 
 ## Solution
 
-**SimpleOffer** provides a **one-click, decentralized form + payment system** that uses:  
+**SimpleOffer** provides a **one-click, decentralized form + payment system** for service providers and clients. Here’s the typical user journey:
 
-- **Dynamic** → wallet-based authentication for both clients and service providers.
-- **PYUSD** → Businesses offer don't want volatile payment. stablecoin payments for deposits, milestone completion, or offers enable anyone to accept the payments at a fixed price without the banking fees.
-- **Hardhat** → smart contracts to record form submissions, offers, and payments on-chain  .
-<!-- - **Nora** → AI-assisted contract generation for offers or estimates, and automated verification logic  
-- **ENS** → readable profiles for service providers and clients   -->
-
-Note this project is a hackathon prototype and would require additional work to be production ready.
-
-**How it works (high-level flow):**  
-
-
-1. Connect wallet via Dynamic → authenticate client/pro.
-2. Client submits a service request form → AI-assisted validation.
-3. Smart contract is deployed via Hardhat/Hedera → PYUSD payment deposited.
-4. Service provider reviews request → AI-assisted offer generation.
-5. Client approves → contract releases payment automatically.
-6. Optional ENS, NFT receipt, and document verification enhance usability and trust.
-
-**Key differentiators:**  
-
-- Fully **decentralized** and **trustless** payments  
-- **AI-assisted smart contracts** that require no Solidity knowledge  
-- **One-click form collection** reduces friction for clients  
-- Optional **readable ENS profiles** for trust and reputation  
-
-## Future Business model
-
-1. **Transaction Fees on Contract Creation** (0.5-1%): Small fee charged when service providers deploy new offer contracts, similar to marketplace commissions but significantly lower than traditional platforms like Upwork (5-20%)
-
-2. **Premium Features** ($10-50/month):
-   - Advanced analytics dashboard for service providers
-   - Custom branding and white-label solutions
-   - Priority support and faster contract processing
-   - Bulk contract management tools
-
-2. **Payment Processing** (0.25%): Optional fee attached to invoices. Alternatively could have this apply to transactions over a given value.
-
-5. **Value-Added Services**:
-   - Legal contract template marketplace with vetted templates
-   - Dispute resolution services through decentralized arbitration
-   - Insurance products for high-value contracts
-   - Integration services with popular business tools (CRM, accounting software)
-
-6. **Data Insights & Analytics** (B2B2C): 
-   - Anonymized market rate insights for service categories
-   - Industry benchmarking reports
-   - Freelancer/service provider matching algorithms
-
-**Revenue Projections**: With 1000 active contracts per month at average $2000 value, transaction fees alone could generate $10-20K monthly revenue, with subscription and enterprise tiers providing additional recurring revenue streams. 
+### How it works (step-by-step):
+1. **Connect wallet** via Dynamic → authenticate client/pro
+2. **Client submits service request form** (optionally AI-assisted validation)
+3. **Smart contract is deployed** via Hardhat → PYUSD payment deposited
+4. **Service provider reviews request** (optionally AI-assisted offer generation)
+5. **Client approves** → contract releases payment automatically
+6. **Optional:** ENS, NFT receipt, and document verification for enhanced trust
 
 ---
 
-## Potential Future Work
-- **Recurring subscriptions or retainers:** Automate recurring service payments using PYUSD smart contracts  
-- **Cross-chain support:** Use LayerZero or Hyperlane to allow payments or contracts across multiple chains  
-- **AI-driven pricing suggestions:** Nora could analyze past submissions to recommend optimized offer pricing  
-- **Reputation & review system:** Track completed offers and release ratings as verifiable on-chain badges  
+### Technology Breakdown
+
+
+#### Dynamic
+Dynamic provides wallet-based authentication for both clients and service providers, enabling seamless login and contract interaction through viem integration. Email enforcement and connection on offer pages ensure that users are verified and actionable. The frontend is integrated for one-click wallet connect, offer creation, and payment flows, making the platform accessible to everyone—not just Web3 experts. Looking ahead, the roadmap includes support for more chains, on-chain deployed status, and discount codes based on Dynamic groups.
+
+
+#### PYUSD
+PYUSD enables stable, non-volatile payments for businesses and freelancers. All deposits, milestone completions, and offers are settled in PYUSD, ensuring predictable value transfer without banking fees or volatility risk.
+
+#### Hardhat
+A contract is deployed for every offer page. We use hardhat to ensure there won't be any errors and enable the test ABI to be built and transferred as part of the deploy process to the SingleOffer app.
+The SingleOffer contract has a local script in `update-metadata.js` which automatically updates this based on the hardhat build output. 
+
+SingleOffer also has both an ignition module for command line contract deployments and solidity unit tests as part of the build.
+
+---
+
+**Key Differentiators:**
+
+- Fully **decentralized** and **trustless** payments
+- **AI-assisted smart contracts** (no Solidity knowledge required)
+- **One-click form collection** reduces friction for clients
+- Optional **readable ENS profiles** for trust and reputation
+
+---
+
+## Usage Quick Reference
+
+| Command | Description |
+|---------|-------------|
+| `yarn build` | Compile all smart contracts and generate artifacts |
+| `yarn apply` | Copy contract ABIs and types to the frontend app for integration |
+| `yarn test` | Run all contract and integration tests (JS/TS and Solidity) |
+| `yarn deploy:simpleoffer:local` | Deploy SimpleOffer contracts to a local Hardhat node |
+| `npx hardhat ignition deploy --network sepolia ignition/modules/SimpleOffer.ts` | Deploy SimpleOffer contracts to Sepolia testnet using Ignition |
+
+
+## Future Business Model
+
+| Revenue Stream | Description |
+|---------------|-------------|
+| **Transaction Fees** | 0.5-1% fee on contract creation (much lower than Upwork/Fiverr) |
+| **Premium Features** | $10-50/month for analytics, branding, support, bulk tools |
+| **Payment Processing** | 0.25% fee on invoices or high-value transactions |
+| **Value-Added Services** | Legal templates, dispute resolution, insurance, integrations |
+| **Data Insights & Analytics** | Market insights, benchmarking, matching algorithms |
+
+**Why this model?**
+- Lower fees and more transparency than traditional platforms
+- Recurring revenue from SaaS features and B2B analytics
+- Value-added services create new business opportunities
+
+**Revenue Projections:**
+With 1000 active contracts/month at $2000 average value, transaction fees alone could generate $10-20K monthly, with additional recurring revenue from subscriptions and enterprise tiers.
+
+---
+
+
+## Roadmap & Potential Future Work
+
+- **Recurring subscriptions/retainers:** Automate recurring service payments using PYUSD smart contracts
+- **Cross-chain support:** Use LayerZero or Hyperlane to allow payments/contracts across multiple chains
+- **Reputation & review system:** Track completed offers and release ratings as verifiable on-chain badges
 - **Integration with fiat on-ramps:** Via Dynamic’s Coinbase integration for clients who want to pay with fiat
-- **Configurable Themes** SimpleOffer currently has a single gradient theme. Future work would enable the user to configure whatever checkout background or color palette they would want.
+- **Configurable themes:** Enable users to customize checkout backgrounds and color palettes
+
+---
 
 
-### How it's built
-
-* Dynamic: authentication wrapper around metamask and retrieving providers. (no gambling or games of chance)
-    Mix dynamic with other solutions
-* Hardhat
-    Smart contract development and deployment
-    Demo with a test
-* PyUSD: payment candidate and erc20
-    Core payments. Businesses don't want to receive volatile currencies
-
-#### Production deploy
-
-* To do a production deploy
-
-<pre>
-    Copy .env.example to .env
-    Update testnet -> mainnet.
-    Add your dynamic env id.
-</pre>
-
-
-Use case
-
-Hosting on vercel (important for judging criteria and getting additional credit)
-Open source
-
-### Useful links
-https://ethglobal.com/events/newyork2025/prizes
-
-### Screenshots
