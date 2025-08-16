@@ -24,13 +24,26 @@ import {
 
 const { Title, Paragraph } = Typography;
 
+import { useRef, useCallback } from 'react';
+
 export default function OfferPage({ params }) {
     const router = useRouter();
     // Use React.use() to unwrap the params Promise
     const resolvedParams = React.use(params);
     const { offerId } = resolvedParams;
     const { loading, error, offerData, userAddress, isOwner, refetch } = useOfferData(offerId);
-    
+
+    // Debounce refetch to prevent infinite loops
+    const debounceRef = useRef(null);
+    const debouncedRefetch = useCallback(() => {
+        if (debounceRef.current) {
+            clearTimeout(debounceRef.current);
+        }
+        debounceRef.current = setTimeout(() => {
+            refetch();
+        }, 500);
+    }, [refetch]);
+
     // Only fetch owner offers if the user is actually the owner AND we have loaded the main data
     const { 
         loading: offersLoading, 
@@ -132,49 +145,31 @@ export default function OfferPage({ params }) {
                 </div>
 
                 {/* Main Content */}
-                <Row gutter={[24, 24]}>
-                    {/* Left Column - Offer Details */}
-                    <Col xs={24} lg={16}>
-                        <OfferDetailsCard offerData={offerData} />
-                        {/* <ContractInfoCard offerData={offerData} /> */}
-                    </Col>
-
-                    {/* Right Column - Actions (Different for Owner vs Client) */}
-                    <Col xs={24} lg={8}>
-                        {isOwner ? (
-                            <OwnerActionsCard 
-                                offerData={offerData} 
-                                onUpdate={refetch}
-                            />
-                        ) : (
+                {isOwner ? (
+                    <div>
+                        <OfferDetailsCard offerData={offerData} onDeactivate={debouncedRefetch} />
+                        <OwnerActionsCard 
+                            offerData={offerData} 
+                            onUpdate={debouncedRefetch}
+                        />
+                    </div>
+                ) : (
+                    <Row gutter={[24, 24]}>
+                        {/* Left Column - Offer Details */}
+                        <Col xs={24} lg={16}>
+                            <OfferDetailsCard offerData={offerData} />
+                        </Col>
+                        {/* Right Column - Client Actions */}
+                        <Col xs={24} lg={8}>
                             <ClientActionsCard 
                                 offerData={offerData} 
-                                onUpdate={refetch}
+                                onUpdate={debouncedRefetch}
                             />
-                        )}
-                    </Col>
-                </Row>
-
-                {/* Owner's Other Offers Section */}
-                {isOwner && !offersLoading && (
-                    (() => {
-                        const otherOffers = ownerOffers.filter(offer => offer.contractAddress !== offerId);
-                        
-                        // Only show if there are actual other offers
-                        if (otherOffers.length > 0) {
-                            return (
-                                <div style={{ marginTop: 48, marginBottom: 24 }}>
-                                    <OwnerOffersGrid 
-                                        offers={otherOffers}
-                                        loading={false}
-                                        showEmptyState={false}
-                                    />
-                                </div>
-                            );
-                        }
-                        return null;
-                    })()
+                        </Col>
+                    </Row>
                 )}
+
+                {/* Owner's Other Offers Section removed; now available at /my-offers */}
 
                 {/* Back Button */}
                 <div style={{ textAlign: 'center', marginTop: 32 }}>

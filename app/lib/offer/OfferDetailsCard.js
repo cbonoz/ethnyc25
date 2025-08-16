@@ -17,10 +17,31 @@ import {
     UserOutlined,
     CheckCircleOutlined
 } from '@ant-design/icons';
+import { useWalletClient } from '../../hooks/useWalletClient';
 
 const { Title, Paragraph, Text } = Typography;
 
-export default function OfferDetailsCard({ offerData }) {
+export default function OfferDetailsCard({ offerData, onDeactivate }) {
+    const walletClient = useWalletClient();
+    const [loading, setLoading] = React.useState(false);
+
+    const handleDeactivate = async () => {
+        if (!walletClient) {
+            message.error('Please connect your wallet');
+            return;
+        }
+        setLoading(true);
+        try {
+            await deactivateOffer(walletClient, offerData.contractAddress);
+            message.success('Offer deactivated successfully!');
+            if (onDeactivate) onDeactivate();
+        } catch (error) {
+            message.error('Failed to deactivate offer: ' + (error.message || error));
+        } finally {
+            setLoading(false);
+        }
+    };
+
     if (!offerData) return null;
 
     return (
@@ -83,6 +104,18 @@ export default function OfferDetailsCard({ offerData }) {
                     </div>
                 </Col>
             </Row>
+            {/* Deactivate Offer Button for Owner */}
+            {offerData.isActive && !offerData.isAccepted && (
+                <div style={{ marginTop: 24, textAlign: 'right' }}>
+                    <Button
+                        danger
+                        loading={loading}
+                        onClick={handleDeactivate}
+                    >
+                        Deactivate Offer
+                    </Button>
+                </div>
+            )}
         </Card>
     );
 }

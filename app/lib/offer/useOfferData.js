@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 import { getMetadata } from '../../util/appContractViem';
 
@@ -13,7 +13,11 @@ export default function useOfferData(offerId) {
     const [error, setError] = useState(null);
     const [offerData, setOfferData] = useState(null);
 
+    // Add a state to force refetch
+    const [fetchIndex, setFetchIndex] = useState(0);
+
     useEffect(() => {
+        let cancelled = false;
         if (!offerId) {
             setLoading(false);
             return;
@@ -31,11 +35,9 @@ export default function useOfferData(offerId) {
             try {
                 console.log('Fetching offer data for contract:', offerId);
                 const metadata = await getMetadata(null, offerId);
-                
                 if (!metadata) {
                     throw new Error('No metadata returned from contract');
                 }
-
                 const data = {
                     contractAddress: offerId,
                     title: metadata.title,
@@ -53,20 +55,23 @@ export default function useOfferData(offerId) {
                     isFunded: metadata.isFunded,
                     isCompleted: metadata.isCompleted
                 };
-
-                // Cache the result
-                dataCache.set(offerId, data);
-                setOfferData(data);
-                setLoading(false);
+                if (!cancelled) {
+                    dataCache.set(offerId, data);
+                    setOfferData(data);
+                    setLoading(false);
+                }
             } catch (error) {
-                console.error('Error fetching offer data:', error);
-                setError(error.message || 'Failed to load offer data');
-                setLoading(false);
+                if (!cancelled) {
+                    console.error('Error fetching offer data:', error);
+                    setError(error.message || 'Failed to load offer data');
+                    setLoading(false);
+                }
             }
         };
 
         fetchData();
-    }, [offerId]);
+        return () => { cancelled = true; };
+    }, [offerId, fetchIndex]);
 
     // Memoize userAddress to avoid unnecessary rerenders
     const userAddress = useMemo(() => primaryWallet?.address || null, [primaryWallet?.address]);
@@ -88,16 +93,20 @@ export default function useOfferData(offerId) {
         }
     }, [userAddress, offerData, isOwner]);
 
+    // Memoize refetch so it doesn't change on every render
+    const refetch = useCallback(() => {
+        dataCache.delete(offerId);
+        setLoading(true);
+        setError(null);
+        setFetchIndex(idx => idx + 1);
+    }, [offerId]);
+
     return {
         loading,
         error,
         offerData,
         userAddress,
         isOwner,
-        refetch: () => {
-            dataCache.delete(offerId);
-            setLoading(true);
-            setError(null);
-        }
+        refetch
     };
 }

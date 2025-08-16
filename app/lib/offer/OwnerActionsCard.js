@@ -41,6 +41,7 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
     const [loadingComplete, setLoadingComplete] = useState(false);
     const [loadingDeactivate, setLoadingDeactivate] = useState(false);
     const [loadingReject, setLoadingReject] = useState(null); // clientAddress or null
+    const [loading, setLoading] = useState(false); // For Withdraw Funds and general actions
     const [contractBalance, setContractBalance] = useState('0');
     const [offerRequests, setOfferRequests] = useState([]);
     const [loadingRequests, setLoadingRequests] = useState(false);
@@ -297,7 +298,7 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
                                 <Card 
                                     key={request.clientAddress} 
                                     size="small" 
-                                    style={{ backgroundColor: '#fafafa' }}
+                                    style={{ backgroundColor: '#fafafa', maxWidth: 480, margin: '0 auto 16px auto' }}
                                     title={
                                         <Text strong>
                                             Request #{index + 1}
@@ -324,31 +325,31 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
                                             </Paragraph>
                                         </div>
 
-                                        {!request.isApproved && !request.isRejected && (
-                                            <div style={{ marginTop: '8px' }}>
-                                                <Space>
-                                                    <Button 
-                                                        type="primary"
-                                                        size="small"
-                                                        icon={<CheckCircleOutlined />}
-                                                        onClick={handleCompleteOffer}
-                                                        loading={loadingComplete}
-                                                        disabled={loadingComplete || loadingDeactivate || loadingReject}
-                                                        style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
-                                                    >
-                                                        Mark as Completed
-                                                    </Button>
-                                                    <Button 
-                                                        danger
-                                                        size="small"
-                                                        icon={<CloseCircleOutlined />}
-                                                        onClick={() => handleRejectRequest(request.clientAddress)}
-                                                        loading={loadingReject === request.clientAddress}
-                                                        disabled={loadingReject === request.clientAddress || loadingComplete || loadingDeactivate}
-                                                    >
-                                                        Reject (Refund Client)
-                                                    </Button>
-                                                </Space>
+                                        {/* Only show actions if not approved or rejected (pending) */}
+                                        {(!request.isApproved && !request.isRejected) && (
+                                            <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                                <Button 
+                                                    type="primary"
+                                                    size="small"
+                                                    icon={<CheckCircleOutlined />}
+                                                    onClick={handleCompleteOffer}
+                                                    loading={loadingComplete}
+                                                    disabled={loadingComplete || loadingDeactivate || loadingReject}
+                                                    style={{ backgroundColor: '#52c41a', borderColor: '#52c41a', flex: '1 1 140px', minWidth: 120 }}
+                                                >
+                                                    Mark as Completed
+                                                </Button>
+                                                <Button 
+                                                    danger
+                                                    size="small"
+                                                    icon={<CloseCircleOutlined />}
+                                                    onClick={() => handleRejectRequest(request.clientAddress)}
+                                                    loading={loadingReject === request.clientAddress}
+                                                    disabled={loadingReject === request.clientAddress || loadingComplete || loadingDeactivate}
+                                                    style={{ flex: '1 1 140px', minWidth: 120 }}
+                                                >
+                                                    Reject (Refund Client)
+                                                </Button>
                                             </div>
                                         )}
 
@@ -386,31 +387,8 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
 
                 <Divider />
 
-                {/* Quick Stats */}
-                <Row gutter={16}>
-                    <Col span={8}>
-                        <Statistic
-                            title="Accepted"
-                            value={offerData.isAccepted ? 'Yes' : 'No'}
-                            valueStyle={{ fontSize: '14px', color: offerData.isAccepted ? 'green' : 'orange' }}
-                        />
-                    </Col>
-                    <Col span={8}>
-                        <Statistic
-                            title="Funded"
-                            value={offerData.isFunded ? 'Yes' : 'No'}
-                            valueStyle={{ fontSize: '14px', color: offerData.isFunded ? 'green' : 'orange' }}
-                        />
-                    </Col>
-                    <Col span={8}>
-                        <Statistic
-                            title="Completed"
-                            value={offerData.isCompleted ? 'Yes' : 'No'}
-                            valueStyle={{ fontSize: '14px', color: offerData.isCompleted ? 'green' : 'orange' }}
-                        />
-                    </Col>
-                </Row>
 
+                {/* Removed quick stats for Accepted, Funded, Completed as requested */}
                 <Divider />
 
                 {/* Action Buttons */}

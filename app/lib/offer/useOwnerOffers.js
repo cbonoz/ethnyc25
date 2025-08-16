@@ -16,34 +16,33 @@ export default function useOwnerOffers(shouldFetch = false, userAddress = null) 
             return;
         }
 
+        let cancelled = false;
         const fetchOffers = () => {
             try {
                 setLoading(true);
                 // Get offers from localStorage
                 const storedOffers = JSON.parse(localStorage.getItem('userOffers') || '[]');
-                console.log('📦 All stored offers:', storedOffers);
-                console.log('👤 Looking for offers owned by:', stableUserAddress);
-                const userOffers = storedOffers.filter(offer => {
-                    const isMatch = offer.owner && offer.owner.toLowerCase() === stableUserAddress;
-                    console.log('🔍 Checking offer:', {
-                        contractAddress: offer.contractAddress,
-                        owner: offer.owner,
-                        userAddress: stableUserAddress,
-                        isMatch: isMatch
-                    });
-                    return isMatch;
-                });
+                const userOffers = storedOffers.filter(offer =>
+                    offer.owner && offer.owner.toLowerCase() === stableUserAddress
+                );
                 // Only update state if offers actually changed
-                setOffers(prev => JSON.stringify(prev) !== JSON.stringify(userOffers) ? userOffers : prev);
+                setOffers(prev => {
+                    if (JSON.stringify(prev) !== JSON.stringify(userOffers)) {
+                        return userOffers;
+                    }
+                    return prev;
+                });
                 setLoading(false);
             } catch (error) {
-                console.error('Error fetching owner offers:', error);
-                setOffers([]);
-                setLoading(false);
+                if (!cancelled) {
+                    setOffers([]);
+                    setLoading(false);
+                }
             }
         };
 
         fetchOffers();
+        return () => { cancelled = true; };
     }, [shouldFetch, stableUserAddress]);
 
     return {

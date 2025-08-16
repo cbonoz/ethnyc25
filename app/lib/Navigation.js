@@ -18,63 +18,89 @@ export default function Navigation() {
 
     const navItems = [
         {
-            key: 'home',
-            label: 'Home',
-            icon: <HomeOutlined />,
-            path: '/'
-        },
-        {
             key: 'create',
             label: 'Create Offer',
-            icon: <PlusOutlined />,
+            icon: <PlusOutlined />, 
             path: '/create'
+        },
+        {
+            key: 'my-offers',
+            label: 'My Offers',
+            icon: <HomeOutlined style={{ color: '#722ed1' }} />, // You can replace with a better icon
+            path: '/my-offers'
         },
         {
             key: 'about',
             label: 'About',
-            icon: <InfoCircleOutlined />,
+            icon: <InfoCircleOutlined />, 
             path: '/about'
         }
     ];
 
-    // Don't show navigation on the home page or offer pages to keep them clean
-    if (pathname === '/' || pathname?.startsWith('/offer/')) {
-        return null;
-    }
+    // Navigation is now always visible
 
     return (
-        <div style={{ 
-            background: '#fff', 
-            padding: '16px 24px', 
-            borderBottom: '1px solid #f0f0f0',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
-        }}>
-            <div style={{ 
-                maxWidth: '1200px', 
-                margin: '0 auto', 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center' 
-            }}>
-                <div 
-                    style={{ cursor: 'pointer' }} 
+        <div
+            style={{
+                background: '#fff',
+                padding: 0,
+                borderBottom: '1px solid #f0f0f0',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                overflowX: 'auto',
+                whiteSpace: 'nowrap',
+                minWidth: 0,
+            }}
+        >
+            <div
+                style={{
+                    maxWidth: '1200px',
+                    margin: '0 auto',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    flexWrap: 'nowrap',
+                    gap: 12,
+                }}
+            >
+                <div
+                    style={{ cursor: 'pointer', flex: '0 0 auto' }}
                     onClick={() => router.push('/')}
                 >
-                    '<Logo size="small" />
+                    <Logo size="small" />
                 </div>
-                
-                <Space size="middle">
+                <div
+                    style={{
+                        display: 'flex',
+                        flex: '1 1 auto',
+                        gap: 24,
+                        overflowX: 'auto',
+                        whiteSpace: 'nowrap',
+                        minWidth: 0,
+                        alignItems: 'center',
+                    }}
+                >
                     {navItems.map(item => (
-                        <Button
+                        <div
                             key={item.key}
-                            type={pathname === item.path ? 'primary' : 'text'}
-                            icon={item.icon}
                             onClick={() => router.push(item.path)}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                cursor: 'pointer',
+                                color: pathname === item.path ? '#ec348b' : '#4b5563',
+                                fontWeight: pathname === item.path ? 600 : 500,
+                                fontSize: '16px',
+                                opacity: pathname === item.path ? 1 : 0.85,
+                                borderBottom: pathname === item.path ? '2px solid #ec348b' : '2px solid transparent',
+                                padding: '8px 0',
+                                transition: 'color 0.2s, border-bottom 0.2s',
+                            }}
                         >
-                            {item.label}
-                        </Button>
+                            {item.icon}
+                            <span style={{ marginLeft: 8 }}>{item.label}</span>
+                        </div>
                     ))}
-                </Space>
+                </div>
             </div>
         </div>
     );
