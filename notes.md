@@ -1,48 +1,3 @@
-## Screenshots
-
-Screenshots of key flows and features of SimpleOffer
-
-![Adding Custom Message to Request](./screenshots/adding_custom_message_to_request.png)
-*Adding Custom Message to Request*
-
-![Authenticating with Dynamic](./screenshots/authenticating_with_dynamic.png)
-*Authenticating with Dynamic*
-
-![Connect Wallet Error State](./screenshots/connect_wallet_error_state.png)
-*Connect Wallet Error State*
-
-![Customer Screen with Sent Request](./screenshots/customer_screen_with_sent_request.png)
-*Customer Screen with Sent Request*
-
-![Dynamic XYZ Seamless Wallet Change](./screenshots/dynamic_xyz_seamless_wallet_change.png)
-*Dynamic XYZ Seamless Wallet Change*
-
-![Each Offer Gets Unique Contract](./screenshots/each_offer_gets_unique_contract.png)
-*Each Offer Gets Unique Contract*
-
-![Example Contract and Transactions](./screenshots/example_contract_and_transactions.png)
-*Example Contract and Transactions*
-
-![Home Page](./screenshots/home_page.png)
-*Home Page*
-
-![Offer Marked Completed](./screenshots/offer_marked_completed.png)
-*Offer Marked Completed*
-
-![Order Page Created Successfully](./screenshots/order_page_created_successfully.png)
-*Order Page Created Successfully*
-
-![Owner Page with Offer](./screenshots/owner_page_with_offer.png)
-*Owner Page with Offer*
-
-![Sending PYUSD Payment as a Visitor](./screenshots/sending_pyusd_payment_as_a_visitor.png)
-*Sending PYUSD Payment as a Visitor*
-
-![Service Use Cases](./screenshots/service_use_cases.png)
-*Service Use Cases*
-
-![Screenshot 2025-08-16 at 5.41.40 PM](./screenshots/Screenshot 2025-08-16 at 5.41.40 PM.png)
-*Screenshot 2025-08-16 at 5.41.40 PM*
 <p align='center'>
     <img src="https://i.ibb.co/svNK8RQd/logo.png" width=600 />
 </p>
@@ -169,3 +124,45 @@ With 1000 active contracts/month at $2000 average value, transaction fees alone 
 ---
 
 
+## Screenshots
+
+Screenshots of key flows and features of SimpleOffer
+
+![Home Page](./screenshots/home_page.png)
+*Home Page*
+
+![Authenticating with Dynamic](./screenshots/authenticating_with_dynamic.png)
+*Authenticating with Dynamic*
+
+![Dynamic XYZ Seamless Wallet Change](./screenshots/dynamic_xyz_seamless_wallet_change.png)
+*Dynamic XYZ Seamless Wallet Change*
+
+![Connect Wallet Error State](./screenshots/connect_wallet_error_state.png)
+*Connect Wallet Error State*
+
+![Adding Custom Message to Request](./screenshots/adding_custom_message_to_request.png)
+*Adding Custom Message to Request*
+
+![Customer Screen with Sent Request](./screenshots/customer_screen_with_sent_request.png)
+*Customer Screen with Sent Request*
+
+![Sending PYUSD Payment as a Visitor](./screenshots/sending_pyusd_payment_as_a_visitor.png)
+*Sending PYUSD Payment as a Visitor*
+
+![Order Page Created Successfully](./screenshots/order_page_created_successfully.png)
+*Order Page Created Successfully*
+
+![Each Offer Gets Unique Contract](./screenshots/each_offer_gets_unique_contract.png)
+*Each Offer Gets Unique Contract*
+
+![Example Contract and Transactions](./screenshots/example_contract_and_transactions.png)
+*Example Contract and Transactions*
+
+![Owner Page with Offer](./screenshots/owner_page_with_offer.png)
+*Owner Page with Offer*
+
+![Offer Marked Completed](./screenshots/offer_marked_completed.png)
+*Offer Marked Completed*
+
+![Service Use Cases](./screenshots/service_use_cases.png)
+*Service Use Cases*
