@@ -222,7 +222,6 @@ export const getOfferRequests = async (walletClient, contractAddress) => {
             clientAddress: request.clientAddress,
             message: request.message,
             requestedAt: formatDate(new Date(Number(request.requestedAt) * 1000)),
-            isApproved: request.isApproved,
             isRejected: request.isRejected
         }));
     } catch (error) {
@@ -317,24 +316,6 @@ export const withdrawFunds = async (walletClient, contractAddress) => {
     }
 };
 
-// Approve offer request (owner only) using viem
-export const approveOfferRequest = async (walletClient, contractAddress, clientAddress) => {
-    try {
-        const tx = await walletClient.writeContract({
-            address: contractAddress,
-            abi: SIMPLEOFFER_CONTRACT.abi,
-            functionName: 'approveOfferRequest',
-            args: [clientAddress],
-        });
-        
-        console.log('Request approved successfully:', tx);
-        return tx;
-    } catch (error) {
-        console.error('Error approving request:', error);
-        handleContractError(error, 'approve request');
-        throw error;
-    }
-};
 
 // Reject offer request (owner only) using viem
 export const rejectOfferRequest = async (walletClient, contractAddress, clientAddress) => {
@@ -373,8 +354,3 @@ export const deactivateOffer = async (walletClient, contractAddress) => {
     }
 };
 
-// Get client request information for a contract (owner only)
-export const getClientRequest = (contractAddress) => {
-    const offerRequests = JSON.parse(localStorage.getItem('offerRequests') || '{}');
-    return offerRequests[contractAddress] || null;
-};

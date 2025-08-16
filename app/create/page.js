@@ -87,7 +87,7 @@ export default function CreateOffer() {
                     
                     {/* Wallet Connection Alert removed; handled in DeployStepContent on deploy attempt */}
                     
-                    {/* Network Status removed as per request */}
+                    {/* Network Status indicator removed as per request */}
                 </div>
 
                 {/* Steps */}

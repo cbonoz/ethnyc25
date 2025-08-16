@@ -1,4 +1,8 @@
-const config = {
+import hardhatIgnitionViemPlugin from "@nomicfoundation/hardhat-ignition-viem";
+
+
+export default {
+    plugins: [hardhatIgnitionViemPlugin],
   solidity: {
     version: "0.8.28",
     settings: {
@@ -25,5 +29,3 @@ const config = {
     },
   },
 };
-
-export default config;

@@ -151,7 +151,7 @@ export default function ClientActionsCard({ offerData, onUpdate }) {
 
     const getApplicationStatus = () => {
         if (!hasApplied) {
-            return { text: 'Offer request not submitted yet', color: 'default' };
+            return { text: 'Request not submitted yet', color: 'default' };
         } else if (userApplication?.isRejected) {
             return { text: 'Request rejected', color: 'red' };
         } else if (isApproved && !offerData.isAccepted) {

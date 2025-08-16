@@ -3,7 +3,7 @@
 SimpleOffer
 ---
 
-One click form collection and payments backed by smart contracts for any service.
+One click form collection and payments backed by smart contracts for any service backed by PYUSD.
 
 ## Problem
 
@@ -35,10 +35,12 @@ Existing solutions partially address these problems, but often have limitations 
 **SimpleOffer** provides a **one-click, decentralized form + payment system** that uses:  
 
 - **Dynamic** → wallet-based authentication for both clients and service providers.
-- **Hardhat** → smart contracts to record form submissions, offers, and payments on-chain  .
 - **PYUSD** → Businesses offer don't want volatile payment. stablecoin payments for deposits, milestone completion, or offers enable anyone to accept the payments at a fixed price without the banking fees.
+- **Hardhat** → smart contracts to record form submissions, offers, and payments on-chain  .
 <!-- - **Nora** → AI-assisted contract generation for offers or estimates, and automated verification logic  
 - **ENS** → readable profiles for service providers and clients   -->
+
+Note this project is a hackathon prototype and would require additional work to be production ready.
 
 **How it works (high-level flow):**  
 
@@ -93,33 +95,26 @@ Existing solutions partially address these problems, but often have limitations 
 - **Integration with fiat on-ramps:** Via Dynamic’s Coinbase integration for clients who want to pay with fiat
 
 
+### How it's built
 
-### Potential tech / how it's built
-
-Infra
-
-<!-- * Walrus: for storage
-    Best app using Walrus for storage - Try to focus on an app idea where decentralized storage solves a current pain point. For example, hosting for NFTs, democratization of AI models, or crowdsourced video streaming. -->
 * Dynamic: authentication wrapper around metamask and retrieving providers. (no gambling or games of chance)
     Mix dynamic with other solutions
 * Hardhat
     Smart contract development and deployment
     Demo with a test
-
 * PyUSD: payment candidate and erc20
     Core payments. Businesses don't want to receive volatile currencies
-<!-- * Nora: coding agent
-    Not user facing
-    Helps with the development process
-    Want to show during the judge preesentation what discussion you
-    Want to see how Nora was specifically helpful with web3 content -->
-* Coinbase developer platform:
-    Onboarding / on ramp
-    Ledger query
-* ENS: decentralized naming
-    Wherever an address is shown, show an ENS profile and attached socials.
-    Text records can be used to store application specific metadata attached to an ens name
-    Proof of humanity could be stored here
+
+#### Production deploy
+
+* To do a production deploy
+
+<pre>
+    Copy .env.example to .env
+    Update testnet -> mainnet.
+    Add your dynamic env id.
+</pre>
+
 
 Use case
 

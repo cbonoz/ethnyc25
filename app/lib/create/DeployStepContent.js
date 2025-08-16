@@ -61,6 +61,12 @@ export default function DeployStepContent({
                 <Text strong>Amount: ${offerData.amount} PYUSD</Text>
                 <br />
                 <Text strong>Payment Type: {offerData.paymentType}</Text>
+                {offerData.paymentType === 'deposit' && offerData.depositPercentage !== undefined && (
+                    <>
+                        <br />
+                        <Text strong>Deposit Required: {offerData.depositPercentage}%</Text>
+                    </>
+                )}
             </Card>
             {showWalletError && (
                 <Alert
