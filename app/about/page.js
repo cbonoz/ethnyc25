@@ -50,7 +50,7 @@ export default function About() {
                     About {APP_NAME}
                 </Title>
                 <Paragraph style={{ fontSize: '20px', color: '#666', maxWidth: '700px', margin: '0 auto 32px' }}>
-                    <b>SimpleOffer</b> is a decentralized form + payment system for any business or service provider. Collect structured client info, generate offers, and manage payments—all on-chain, with wallet-based authentication and smart contract automation.
+                    <b>SimpleOffer</b> is a decentralized form + payment system for any service or service provider. Collect structured client info, generate offers, and manage payments—all on-chain, with wallet-based authentication and smart contract automation.
                 </Paragraph>
                 
                 {/* Hackathon Notice */}

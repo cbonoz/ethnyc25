@@ -14,20 +14,36 @@ import { PYUSD_TOKEN_ADDRESS, ACTIVE_CHAIN } from '../constants';
 import { SIMPLEOFFER_CONTRACT } from './metadata';
 
 
-// Create a public client for reading contract data
-const publicClient = createPublicClient({
-    chain: ACTIVE_CHAIN,
-    transport: http('https://rpc2.sepolia.org', {
-        retryCount: 3,
-        retryDelay: 1000,
-        fetchOptions: {
-            timeout: 15000
-        }
-    })
-});
+// Create multiple public clients with fallback endpoints
+const rpcEndpoints = [
+    'https://rpc2.sepolia.org',
+    'https://sepolia.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
+    'https://ethereum-sepolia-rpc.publicnode.com',
+    'https://rpc.sepolia.org'
+];
 
-// Helper function to add timeout to contract reads
-const readContractWithTimeout = async (contractCall, timeoutMs = 10000) => {
+let currentRpcIndex = 0;
+
+const createPublicClientWithFallback = () => {
+    const endpoint = rpcEndpoints[currentRpcIndex];
+    console.log(`Creating public client with endpoint: ${endpoint}`);
+    
+    return createPublicClient({
+        chain: ACTIVE_CHAIN,
+        transport: http(endpoint, {
+            retryCount: 2,
+            retryDelay: 2000,
+            fetchOptions: {
+                timeout: 20000
+            }
+        })
+    });
+};
+
+const publicClient = createPublicClientWithFallback();
+
+// Helper function to add timeout to contract reads with fallback
+const readContractWithTimeout = async (contractCall, timeoutMs = 15000) => {
     return Promise.race([
         contractCall,
         new Promise((_, reject) => 
@@ -36,9 +52,12 @@ const readContractWithTimeout = async (contractCall, timeoutMs = 10000) => {
     ]);
 };
 
-// Simple rate limiting cache
-const metadataCache = new Map();
-const CACHE_DURATION = 30000; // 30 seconds
+// Function to switch to next RPC endpoint
+const switchToNextRpc = () => {
+    currentRpcIndex = (currentRpcIndex + 1) % rpcEndpoints.length;
+    console.log(`Switching to RPC endpoint: ${rpcEndpoints[currentRpcIndex]}`);
+    return createPublicClientWithFallback();
+};
 
 // Add a simple delay function
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -46,22 +65,6 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 // Track concurrent requests to avoid overwhelming RPC
 let activeRequests = 0;
 const MAX_CONCURRENT_REQUESTS = 2;
-
-const getCachedMetadata = (address) => {
-    const cached = metadataCache.get(address);
-    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-        console.log('📦 Using cached metadata for:', address);
-        return cached.data;
-    }
-    return null;
-};
-
-const setCachedMetadata = (address, data) => {
-    metadataCache.set(address, {
-        data,
-        timestamp: Date.now()
-    });
-};
 
 // Combined metadata and status fetch (for compatibility with existing code)
 export const getMetadata = async (walletClient, address) => {
@@ -71,12 +74,6 @@ export const getMetadata = async (walletClient, address) => {
         publicClient: !!publicClient,
         activeRequests
     });
-    
-    // Check cache first
-    const cached = getCachedMetadata(address);
-    if (cached) {
-        return cached;
-    }
     
     // Wait if too many concurrent requests
     while (activeRequests >= MAX_CONCURRENT_REQUESTS) {
@@ -88,15 +85,6 @@ export const getMetadata = async (walletClient, address) => {
     
     try {
         console.log('Fetching metadata for contract:', address);
-        
-        // First check if the contract exists
-        console.log('🔍 Checking if contract exists...');
-        const code = await publicClient.getCode({ address });
-        console.log('Contract code exists:', !!code && code !== '0x');
-        
-        if (!code || code === '0x') {
-            throw new Error('Contract does not exist at this address');
-        }
         
         // Get offer metadata
         console.log('📞 Calling publicClient.readContract for getOfferMetadata...');
@@ -144,9 +132,6 @@ export const getMetadata = async (walletClient, address) => {
         };
         
         console.log('Final processed result:', result);
-        
-        // Cache the result
-        setCachedMetadata(address, result);
         
         return result;
     } catch (error) {

@@ -33,7 +33,7 @@ export default function OfferPage({ params }) {
     const { 
         loading: offersLoading, 
         offers: ownerOffers 
-    } = useOwnerOffers();
+    } = useOwnerOffers(isOwner); // Only fetch owner offers when user is actually the owner
 
     if (loading) {
         return (

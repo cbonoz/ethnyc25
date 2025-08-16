@@ -3,7 +3,7 @@
 SimpleOffer
 ---
 
-One click form collection and payments backed by smart contracts for any business.
+One click form collection and payments backed by smart contracts for any service.
 
 ## Problem
 

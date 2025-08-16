@@ -1,15 +1,22 @@
 'use client';
 
 import { Alert, Button, Spin } from 'antd';
+import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 import { useNetworkSwitcher } from '../hooks/useNetworkSwitcher';
 
 const NetworkStatus = ({ showSwitcher = true, style = {} }) => {
+  const { primaryWallet } = useDynamicContext();
   const { 
     isCorrectNetwork, 
     isChecking, 
     switchToRequiredNetwork, 
     requiredNetwork 
   } = useNetworkSwitcher();
+
+  // Don't show anything if no wallet is connected
+  if (!primaryWallet) {
+    return null;
+  }
 
   const handleSwitchNetwork = async () => {
     try {

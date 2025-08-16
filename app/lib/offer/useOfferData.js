@@ -7,7 +7,7 @@ import { getMetadata } from '../../util/appContractViem';
 
 export default function useOfferData(offerId) {
     const walletClient = useWalletClient();
-    const { address: userAddress, hasChanged: addressChanged, resetHasChanged } = useWalletAddress();
+    const { address: userAddress } = useWalletAddress(); // Remove hasChanged tracking for basic metadata
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [offerData, setOfferData] = useState(null);
@@ -16,19 +16,21 @@ export default function useOfferData(offerId) {
     const fetchOfferData = async () => {
         console.log('fetchOfferData called with:', { walletClient: !!walletClient, offerId });
         
-        if (!walletClient || !offerId) {
-            console.log('Missing walletClient or offerId, setting loading to false');
+        if (!offerId) {
+            console.log('Missing offerId, setting loading to false');
             setLoading(false);
             return;
         }
 
+        // For public contract data, we don't need a wallet client
+        // We can read contract metadata without wallet connection
         try {
             setLoading(true);
             setError(null);
             
             console.log('Fetching offer data for contract:', offerId);
             console.log('About to call getMetadata...');
-            const metadata = await getMetadata(walletClient, offerId);
+            const metadata = await getMetadata(null, offerId); // Pass null for walletClient
             console.log('getMetadata returned:', metadata);
             
             if (!metadata) {
@@ -65,23 +67,16 @@ export default function useOfferData(offerId) {
     };
 
     useEffect(() => {
-        if (!hasLoadedRef.current && walletClient && offerId) {
+        // Only fetch once when component mounts and offerId is available
+        if (!hasLoadedRef.current && offerId) {
+            console.log('Initial fetch for offerId:', offerId);
             fetchOfferData();
         }
-    }, [walletClient, offerId]); // Only depend on these stable values
+    }, [offerId]); // Only depend on offerId
 
-    // Watch for user address changes and refetch data
-    useEffect(() => {
-        if (addressChanged && userAddress && hasLoadedRef.current) {
-            console.log('🔄 User address changed - refetching offer data for:', offerId);
-            hasLoadedRef.current = false;
-            fetchOfferData();
-            resetHasChanged(); // Reset the change flag
-        }
-    }, [addressChanged]); // Only depend on addressChanged
-
-    // Manual refetch function
+    // Manual refetch function - for when user performs actions that change the offer state
     const refetch = async () => {
+        console.log('Manual refetch requested for offerId:', offerId);
         hasLoadedRef.current = false;
         await fetchOfferData();
     };

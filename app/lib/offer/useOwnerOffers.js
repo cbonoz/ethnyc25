@@ -5,35 +5,36 @@ import { useWalletClient } from '../../hooks/useWalletClient';
 import { useWalletAddress } from '../../hooks/useWalletAddress';
 import { getMetadata } from '../../util/appContractViem';
 
-export default function useOwnerOffers() {
+export default function useOwnerOffers(enabled = true) {
     const walletClient = useWalletClient();
     const { address: userAddress, hasChanged: addressChanged, resetHasChanged } = useWalletAddress();
     const [loading, setLoading] = useState(false);
     const [offers, setOffers] = useState([]);
+    const [lastFetchedAddress, setLastFetchedAddress] = useState(null);
 
+    // Only fetch when userAddress changes or on mount, AND when enabled
     useEffect(() => {
-        if (userAddress) {
+        if (enabled && userAddress && userAddress !== lastFetchedAddress) {
+            console.log('Fetching owner offers for new address:', userAddress);
             fetchOwnerOffers();
-        } else {
-            // Clear offers when no user address
+            setLastFetchedAddress(userAddress);
+        } else if (!userAddress || !enabled) {
+            // Clear offers when no user address or disabled
             setOffers([]);
+            setLastFetchedAddress(null);
         }
-    }, [userAddress]); // Remove fetchOwnerOffers from dependencies to prevent infinite loop
+    }, [userAddress, enabled]); // Depend on both userAddress and enabled
 
-    // Watch for address changes and refetch
+    // Handle address changes more efficiently
     useEffect(() => {
-        if (addressChanged && userAddress) {
-            console.log('🔄 User address changed - refetching owner offers');
-            fetchOwnerOffers();
-            resetHasChanged();
-        } else if (addressChanged && !userAddress) {
-            setOffers([]);
+        if (addressChanged) {
+            console.log('Address changed, resetting flag');
             resetHasChanged();
         }
-    }, [addressChanged]); // Only depend on addressChanged
+    }, [addressChanged, resetHasChanged]);
 
     const fetchOwnerOffers = useCallback(async () => {
-        if (!walletClient || !userAddress) {
+        if (!enabled || !walletClient || !userAddress) {
             return;
         }
 
@@ -73,7 +74,7 @@ export default function useOwnerOffers() {
         } finally {
             setLoading(false);
         }
-    }, [walletClient, userAddress]);
+    }, [enabled, walletClient, userAddress]);
 
     const getOfferStatus = (metadata) => {
         if (!metadata.isActive) return 'inactive';

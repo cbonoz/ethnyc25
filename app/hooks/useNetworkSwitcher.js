@@ -14,9 +14,9 @@ export const useNetworkSwitcher = () => {
   const checkNetwork = useCallback(async () => {
     if (!primaryWallet) {
       console.log('No primary wallet connected');
-      setIsCorrectNetwork(false);
+      setIsCorrectNetwork(true); // Set to true when no wallet to hide network switcher
       setHasChecked(true);
-      return false;
+      return true; // Return true so network switcher doesn't show
     }
     
     try {

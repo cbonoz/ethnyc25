@@ -81,7 +81,7 @@ function UiLayoutWrapper({ children }) {
 						</span>
 					</Header>
 					<span className="float-right bold active-network" style={{ color: '#8c8c8c' }}>
-						Use network: {ACTIVE_CHAIN.name}&nbsp;
+						{ACTIVE_CHAIN.name}&nbsp;
 					</span>
 					<Content className="container">
 						{/* Pass children to the content area */}

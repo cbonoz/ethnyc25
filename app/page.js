@@ -56,7 +56,7 @@ const Home = () => {
 										}}
 									>
 										Decentralized payment pages
-										<span style={{ color: '#ec348b', display: 'block' }}> for any business</span>
+										<span style={{ color: '#ec348b', display: 'block' }}> for any service</span>
 									</h1>
 									<p
 										style={{

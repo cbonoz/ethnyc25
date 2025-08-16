@@ -63,7 +63,8 @@ export default function useCreateOffer() {
                 finalOfferData.category, // serviceType
                 finalOfferData.deliverables,
                 finalOfferData.amount,
-                deadline
+                deadline,
+                finalOfferData.depositPercentage || 0 // Add deposit percentage
             );
 
             if (contract && contract.address) {

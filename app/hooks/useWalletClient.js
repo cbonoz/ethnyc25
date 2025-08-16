@@ -9,6 +9,11 @@ export function useWalletClient() {
     const { primaryWallet } = useDynamicContext();
     
     const walletClient = useMemo(() => {
+        // Don't log if no wallet to reduce console spam
+        if (!primaryWallet) {
+            return null;
+        }
+        
         console.log('useWalletClient memoization check:', { 
             primaryWallet: !!primaryWallet,
             hasConnector: !!primaryWallet?.connector,
