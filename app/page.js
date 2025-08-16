@@ -11,7 +11,6 @@ import { colors } from './theme/colors';
 
 const CHECKLIST_ITEMS = [
 	'One-click form collection and payments for anyone',
-	'Smart contracts built with Hardhat for transparent automation',
 	'Decentralized, trustless payments using PYUSD stablecoin',
 	'Wallet-based authentication via Dynamic - no accounts needed'
 ];
@@ -29,9 +28,9 @@ const Home = () => {
 			{/* Hero Section */}
 			<div style={{ padding: '80px 48px' }}>
 				{/* Logo Section */}
-				{/* <div style={{ textAlign: 'center', marginBottom: '64px' }}>
+				<div style={{ textAlign: 'center', marginBottom: '64px' }}>
 					<Logo />
-				</div> */}
+				</div>
 
 				<Row
 					gutter={[64, 48]}
@@ -682,7 +681,7 @@ const Home = () => {
 								color: 'white'
 							}}
 						>
-							Ready to Transform Your Service?
+							Ready?
 						</h2>
 						<p
 							style={{
@@ -708,7 +707,7 @@ const Home = () => {
 							}}
 							onClick={() => router.push('/create')}
 						>
-							Get Started Now
+							{siteConfig.cta.primary}
 						</Button>
 					</div>
 				</div>

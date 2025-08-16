@@ -8,22 +8,28 @@ import { useMemo } from "react";
 export function useWalletClient() {
     const { primaryWallet } = useDynamicContext();
     
+    // Extract stable values outside useMemo to prevent dependency issues
+    const walletAddress = primaryWallet?.address;
+    const connectorKey = primaryWallet?.connector?.key;
+    const hasWallet = !!primaryWallet;
+    const hasConnector = !!primaryWallet?.connector;
+    
     const walletClient = useMemo(() => {
         // Don't log if no wallet to reduce console spam
-        if (!primaryWallet) {
+        if (!hasWallet) {
             return null;
         }
         
         console.log('useWalletClient: Creating wallet client', { 
-            hasWallet: !!primaryWallet,
-            hasConnector: !!primaryWallet?.connector,
-            connectorKey: primaryWallet?.connector?.key,
-            address: primaryWallet?.address,
+            hasWallet,
+            hasConnector,
+            connectorKey,
+            address: walletAddress,
             chainId: ACTIVE_CHAIN.id,
             chainName: ACTIVE_CHAIN.name
         });
 
-        if (!primaryWallet?.connector) {
+        if (!hasConnector) {
             console.log('useWalletClient: No wallet connector available');
             return null;
         }
@@ -39,7 +45,7 @@ export function useWalletClient() {
         try {
             // Create wallet client following viem best practices
             const client = createWalletClient({
-                account: primaryWallet.address, // Hoist the account
+                account: walletAddress, // Hoist the account
                 chain: ACTIVE_CHAIN,
                 transport: custom(provider),
             });
@@ -57,10 +63,11 @@ export function useWalletClient() {
             return null;
         }
     }, [
-        primaryWallet?.address, 
-        primaryWallet?.connector?.key,
-        // Add chain dependency in case it changes
-        ACTIVE_CHAIN.id
+        // Use the stable extracted values
+        walletAddress, 
+        connectorKey,
+        hasWallet,
+        hasConnector
     ]);
 
     return walletClient;

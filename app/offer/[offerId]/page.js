@@ -29,11 +29,13 @@ export default function OfferPage({ params }) {
     // Use React.use() to unwrap the params Promise
     const resolvedParams = React.use(params);
     const { offerId } = resolvedParams;
-    const { loading, error, offerData, isOwner, refetch } = useOfferData(offerId);
+    const { loading, error, offerData, userAddress, isOwner, refetch } = useOfferData(offerId);
+    
+    // Only fetch owner offers if the user is actually the owner AND we have loaded the main data
     const { 
         loading: offersLoading, 
         offers: ownerOffers 
-    } = useOwnerOffers(isOwner); // Only fetch owner offers when user is actually the owner
+    } = useOwnerOffers(!loading && isOwner === true, userAddress);
 
     if (loading) {
         return (
@@ -134,7 +136,7 @@ export default function OfferPage({ params }) {
                     {/* Left Column - Offer Details */}
                     <Col xs={24} lg={16}>
                         <OfferDetailsCard offerData={offerData} />
-                        <ContractInfoCard offerData={offerData} />
+                        {/* <ContractInfoCard offerData={offerData} /> */}
                     </Col>
 
                     {/* Right Column - Actions (Different for Owner vs Client) */}

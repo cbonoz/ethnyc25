@@ -71,20 +71,43 @@ export const getMetadata = async (walletClient, address) => {
         
         console.log('✅ Metadata result:', metadata);
 
-        // Get offer status with timeout
+        // Validate metadata structure
+        if (!metadata || !metadata.title) {
+            throw new Error('Invalid metadata structure - missing required fields');
+        }
+
+        // Get offer status with timeout and error handling
         console.log('📞 Calling publicClient.readContract for getOfferStatus...');
-        const status = await Promise.race([
-            publicClient.readContract({
-                address: address,
-                abi: SIMPLEOFFER_CONTRACT.abi,
-                functionName: 'getOfferStatus',
-            }),
-            new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Status read timeout after 10 seconds')), 10000)
-            )
-        ]);
-        
-        console.log('✅ Status result:', status);
+        let status;
+        try {
+            status = await Promise.race([
+                publicClient.readContract({
+                    address: address,
+                    abi: SIMPLEOFFER_CONTRACT.abi,
+                    functionName: 'getOfferStatus',
+                }),
+                new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Status read timeout after 10 seconds')), 10000)
+                )
+            ]);
+            console.log('✅ Status result:', status);
+        } catch (statusError) {
+            console.warn('⚠️ Could not fetch offer status, using defaults:', statusError.message);
+            
+            // Check if this is a known problematic contract
+            if (statusError.message.includes('Position') && statusError.message.includes('out of bounds')) {
+                console.warn('🔍 This appears to be a contract with incomplete state data');
+            }
+            
+            // Provide default status if getOfferStatus fails
+            status = {
+                owner: metadata.owner || '0x0000000000000000000000000000000000000000',
+                client: '0x0000000000000000000000000000000000000000',
+                isAccepted: false,
+                isFunded: false,
+                isCompleted: false
+            };
+        }
 
         // Format amount from Wei (6 decimals for PYUSD)
         const formattedAmount = formatUnits(metadata.amount, 6);

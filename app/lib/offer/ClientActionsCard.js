@@ -31,6 +31,12 @@ export default function ClientActionsCard({ offerData, onUpdate }) {
     const [hasApplied, setHasApplied] = useState(false);
     const [isApproved, setIsApproved] = useState(false);
     const [form] = Form.useForm();
+    
+    // Transaction states
+    const [isTransactionPending, setIsTransactionPending] = useState(false);
+    const [transactionHash, setTransactionHash] = useState(null);
+    const [transactionStep, setTransactionStep] = useState(''); // 'approval', 'funding', 'complete'
+    const [showSuccess, setShowSuccess] = useState(false);
 
     if (!offerData) return null;
 
@@ -93,21 +99,34 @@ export default function ClientActionsCard({ offerData, onUpdate }) {
 
         try {
             setLoading(true);
+            setIsTransactionPending(true);
+            setModalVisible(false); // Close the modal while transaction is processing
+            
+            setTransactionStep('approval');
+            message.loading('Step 1: Approving PYUSD tokens...', 0);
             
             // Use the new combined method - request and fund in one transaction
-            await requestAndFundOffer(walletClient, offerData.contractAddress, values.message);
+            const txHash = await requestAndFundOffer(walletClient, offerData.contractAddress, values.message);
             
-            message.success(`Request submitted and ${offerData.amount} PYUSD payment sent! The owner has been notified on-chain and can see your offer.`);
-            setModalVisible(false);
+            setTransactionStep('complete');
+            setTransactionHash(txHash);
+            message.destroy(); // Clear the loading message
+            
+            // Show success state
+            setShowSuccess(true);
             setHasApplied(true);
             setIsApproved(true);
             form.resetFields();
+            
             if (onUpdate) onUpdate();
         } catch (error) {
             console.error('Error submitting request and payment:', error);
+            message.destroy(); // Clear any loading messages
             message.error(`Failed to complete transaction: ${error.message}`);
+            setModalVisible(true); // Reopen modal if there was an error
         } finally {
             setLoading(false);
+            setIsTransactionPending(false);
         }
     };
 
@@ -136,6 +155,80 @@ export default function ClientActionsCard({ offerData, onUpdate }) {
 
     return (
         <>
+            {/* Transaction Pending State */}
+            {isTransactionPending && (
+                <Card title="Transaction in Progress" style={{ position: 'sticky', top: '24px', borderColor: '#1890ff' }}>
+                    <Space direction="vertical" style={{ width: '100%', textAlign: 'center' }} size="large">
+                        <div>
+                            <div className="spinner" style={{ 
+                                border: '4px solid #f3f3f3',
+                                borderTop: '4px solid #1890ff',
+                                borderRadius: '50%',
+                                width: '40px',
+                                height: '40px',
+                                animation: 'spin 1s linear infinite',
+                                margin: '0 auto 16px auto'
+                            }} />
+                            <Title level={4} style={{ color: '#1890ff', margin: 0 }}>
+                                Processing Transaction
+                            </Title>
+                            <Text type="secondary">
+                                {transactionStep === 'approval' && 'Approving PYUSD tokens...'}
+                                {transactionStep === 'funding' && 'Submitting request and payment...'}
+                                {transactionStep === 'complete' && 'Transaction complete!'}
+                            </Text>
+                        </div>
+                        <Text type="secondary" style={{ fontSize: '12px' }}>
+                            Please do not close this page. This may take a few minutes.
+                        </Text>
+                    </Space>
+                </Card>
+            )}
+
+            {/* Success State */}
+            {showSuccess && transactionHash && (
+                <Card title="Payment Successful!" style={{ position: 'sticky', top: '24px', borderColor: '#52c41a' }}>
+                    <Space direction="vertical" style={{ width: '100%', textAlign: 'center' }} size="large">
+                        <div>
+                            <CheckCircleOutlined style={{ fontSize: '48px', color: '#52c41a', marginBottom: '16px' }} />
+                            <Title level={4} style={{ color: '#52c41a', margin: 0 }}>
+                                Request Submitted & Payment Sent!
+                            </Title>
+                            <Text type="secondary">
+                                Your request has been submitted and ${offerData.amount} PYUSD has been sent to the contract.
+                            </Text>
+                        </div>
+                        
+                        <div style={{ backgroundColor: '#f6ffed', padding: '12px', borderRadius: '6px' }}>
+                            <Text strong>Transaction Hash:</Text>
+                            <br />
+                            <a 
+                                href={`https://sepolia.etherscan.io/tx/${transactionHash}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ fontSize: '12px', wordBreak: 'break-all' }}
+                            >
+                                {transactionHash} ↗
+                            </a>
+                        </div>
+
+                        <Button 
+                            type="primary" 
+                            size="large" 
+                            block
+                            onClick={() => {
+                                setShowSuccess(false);
+                                window.location.reload(); // Refresh to show updated state
+                            }}
+                        >
+                            Back to Offer
+                        </Button>
+                    </Space>
+                </Card>
+            )}
+
+            {/* Normal State - only show if not in transaction or success state */}
+            {!isTransactionPending && !showSuccess && (
             <Card title="Take Action" style={{ position: 'sticky', top: '24px' }}>
                 <Space direction="vertical" style={{ width: '100%' }} size="large">
                     <div style={{ textAlign: 'center' }}>
@@ -153,7 +246,7 @@ export default function ClientActionsCard({ offerData, onUpdate }) {
                         {hasApplied && userApplication && (
                             <div style={{ marginTop: 8, padding: 8, backgroundColor: '#f5f5f5', borderRadius: 4 }}>
                                 <Text type="secondary" style={{ fontSize: '12px' }}>
-                                    Applied: {new Date(userApplication.appliedAt).toLocaleDateString()}
+                                    Applied: {userApplication.requestedAt || 'Recently'}
                                 </Text>
                                 <br />
                                 <Text type="secondary" style={{ fontSize: '12px' }}>
@@ -219,6 +312,7 @@ export default function ClientActionsCard({ offerData, onUpdate }) {
                     </div>
                 </Space>
             </Card>
+            )}
 
             {/* Request Modal - Simplified to just message */}
             <Modal
