@@ -16,9 +16,6 @@ const CHECKLIST_ITEMS = [
 	'Wallet-based authentication via Dynamic - no accounts needed'
 ];
 
-const HERO_IMAGE =
-	'https://media.giphy.com/media/3oKIPEqDGUULpEU0aQ/giphy.gif';
-
 const Home = () => {
 	const router = useRouter();
 
@@ -34,17 +31,19 @@ const Home = () => {
 				<Row
 					gutter={[64, 48]}
 					align="middle"
+					justify="center"
 					style={{ minHeight: '70vh', maxWidth: '1400px', margin: '0 auto' }}
 				>
-					<Col xs={24} lg={12}>
-						<Space direction="vertical" size="large" style={{ width: '100%' }}>
-							{/* Logo/Brand */}
-							<div style={{ marginBottom: '32px' }}>
-								<Logo />
-							</div>
+					<Col xs={24} lg={16}>
+						<div style={{ textAlign: 'center' }}>
+							<Space direction="vertical" size="large" style={{ width: '100%' }}>
+								{/* Logo/Brand */}
+								<div style={{ marginBottom: '32px' }}>
+									<Logo />
+								</div>
 
-							{/* Hero Title */}
-							<div>
+								{/* Hero Title */}
+								<div>
 								<h1
 									style={{
 										fontSize: '48px',
@@ -123,22 +122,6 @@ const Home = () => {
 								</Button>
 							</Space>
 						</Space>
-					</Col>
-
-					<Col xs={24} lg={12}>
-						<div style={{ textAlign: 'center' }}>
-							<div style={{ position: 'relative', display: 'inline-block' }}>
-								<Image
-									width={400}
-									height={500}
-									style={{
-										borderRadius: '24px',
-										boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
-									}}
-									src={HERO_IMAGE}
-									alt={APP_NAME}
-								/>
-							</div>
 						</div>
 					</Col>
 				</Row>

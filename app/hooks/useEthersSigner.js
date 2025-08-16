@@ -5,10 +5,20 @@ import { ethers } from 'ethers'
 import { ACTIVE_CHAIN } from '../constants'
  
 export function walletClientToSigner(walletClient) {
+  if (!walletClient) {
+    return undefined;
+  }
+  
   let { account, chain, transport } = walletClient
   if (!chain) {
     chain = ACTIVE_CHAIN
   }
+  
+  if (!account || !transport) {
+    console.warn("walletClientToSigner: Missing account or transport", walletClient);
+    return undefined;
+  }
+  
   console.log("walletClientToSigner", walletClient, chain)
   const network = {
     chainId: chain.id,
@@ -38,7 +48,7 @@ export function dynamicWalletToSigner(wallet) {
 }
  
 /** Hook to convert a viem Wallet Client or Dynamic wallet to an ethers.js Signer. */
-export function useEthersSigner({ chainId }) {
+export function useEthersSigner({ chainId } = {}) {
   const { data: walletClient } = useWalletClient({ chainId })
   const { primaryWallet } = useDynamicContext()
   
