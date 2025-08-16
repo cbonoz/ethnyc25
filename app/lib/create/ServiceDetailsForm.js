@@ -65,7 +65,7 @@ export default function ServiceDetailsForm() {
                     onClick={handleSetDemoData}
                     style={{ height: 'auto', padding: '8px 16px' }}
                 >
-                    Fill Demo Data (All Steps)
+                    Fill Demo Data
                 </Button>
             </div>
             

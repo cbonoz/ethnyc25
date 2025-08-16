@@ -517,6 +517,151 @@ const Home = () => {
 					</Row>
 				</div>
 
+				{/* Use Cases Section */}
+				<div style={{ padding: '80px 0', maxWidth: '1800px', margin: '0 auto', backgroundColor: '#f8fafc' }}>
+					<div style={{ textAlign: 'center', marginBottom: '64px' }}>
+						<h2
+							style={{
+								fontSize: '36px',
+								fontWeight: 'bold',
+								color: '#1f2937',
+								marginBottom: '16px'
+							}}
+						>
+							Perfect for any service
+						</h2>
+						<p
+							style={{
+								fontSize: '20px',
+								color: '#6b7280',
+								maxWidth: '900px',
+								margin: '0 auto'
+							}}
+						>
+							From creative work to home services, SimpleOffer streamlines client onboarding and payments
+						</p>
+					</div>
+
+					<Row gutter={[48, 32]}>
+						<Col xs={24} md={8}>
+							<div
+								style={{
+									textAlign: 'center',
+									padding: '32px',
+									background: 'white',
+									borderRadius: '16px',
+									boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+									height: '100%',
+									border: '1px solid #e5e7eb'
+								}}
+							>
+								<div
+									style={{
+										fontSize: '48px',
+										marginBottom: '24px'
+									}}
+								>
+									🎨
+								</div>
+								<h3
+									style={{
+										fontSize: '20px',
+										fontWeight: '600',
+										color: '#1f2937',
+										marginBottom: '16px'
+									}}
+								>
+									Creative Services
+								</h3>
+								<p style={{ color: '#6b7280', lineHeight: '1.6', marginBottom: '20px' }}>
+									Graphic designers, web developers, photographers, and content creators can collect project requirements and secure deposits before starting work.
+								</p>
+								<div style={{ fontSize: '14px', color: '#ec348b', fontWeight: '500' }}>
+									"Logo Design - $500 PYUSD" → Client pays upfront → Work begins
+								</div>
+							</div>
+						</Col>
+
+						<Col xs={24} md={8}>
+							<div
+								style={{
+									textAlign: 'center',
+									padding: '32px',
+									background: 'white',
+									borderRadius: '16px',
+									boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+									height: '100%',
+									border: '1px solid #e5e7eb'
+								}}
+							>
+								<div
+									style={{
+										fontSize: '48px',
+										marginBottom: '24px'
+									}}
+								>
+									🌿
+								</div>
+								<h3
+									style={{
+										fontSize: '20px',
+										fontWeight: '600',
+										color: '#1f2937',
+										marginBottom: '16px'
+									}}
+								>
+									Home & Landscaping
+								</h3>
+								<p style={{ color: '#6b7280', lineHeight: '1.6', marginBottom: '20px' }}>
+									Landscapers, contractors, and home service providers can collect site details, photos, and secure project deposits through smart contracts.
+								</p>
+								<div style={{ fontSize: '14px', color: '#ec348b', fontWeight: '500' }}>
+									"Garden Redesign - $2000 PYUSD" → Site survey paid → Project starts
+								</div>
+							</div>
+						</Col>
+
+						<Col xs={24} md={8}>
+							<div
+								style={{
+									textAlign: 'center',
+									padding: '32px',
+									background: 'white',
+									borderRadius: '16px',
+									boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+									height: '100%',
+									border: '1px solid #e5e7eb'
+								}}
+							>
+								<div
+									style={{
+										fontSize: '48px',
+										marginBottom: '24px'
+									}}
+								>
+									🤝
+								</div>
+								<h3
+									style={{
+										fontSize: '20px',
+										fontWeight: '600',
+										color: '#1f2937',
+										marginBottom: '16px'
+									}}
+								>
+									Peer-to-Peer Services
+								</h3>
+								<p style={{ color: '#6b7280', lineHeight: '1.6', marginBottom: '20px' }}>
+									Tutoring, consulting, coaching, and personal services can collect client info and secure session payments without platform fees.
+								</p>
+								<div style={{ fontSize: '14px', color: '#ec348b', fontWeight: '500' }}>
+									"Math Tutoring Package - $300 PYUSD" → Student pays → Sessions begin
+								</div>
+							</div>
+						</Col>
+					</Row>
+				</div>
+
 				{/* CTA Section */}
 				<div
 					style={{ textAlign: 'center', padding: '80px 0', maxWidth: '1400px', margin: '0 auto' }}

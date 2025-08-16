@@ -1,19 +1,23 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useEthersSigner } from '../../hooks/useEthersSigner';
-import { getMetadata } from '../../util/appContract';
+import { useWalletClient } from '../../hooks/useWalletClient';
+import { useWalletAddress } from '../../hooks/useWalletAddress';
+import { getMetadata } from '../../util/appContractViem';
 
 export default function useOfferData(offerId) {
-    const signer = useEthersSigner();
+    const walletClient = useWalletClient();
+    const { address: userAddress, hasChanged: addressChanged, resetHasChanged } = useWalletAddress();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [offerData, setOfferData] = useState(null);
-    const [userAddress, setUserAddress] = useState(null);
     const hasLoadedRef = useRef(false);
 
     const fetchOfferData = async () => {
-        if (!signer || !offerId) {
+        console.log('fetchOfferData called with:', { walletClient: !!walletClient, offerId });
+        
+        if (!walletClient || !offerId) {
+            console.log('Missing walletClient or offerId, setting loading to false');
             setLoading(false);
             return;
         }
@@ -23,7 +27,13 @@ export default function useOfferData(offerId) {
             setError(null);
             
             console.log('Fetching offer data for contract:', offerId);
-            const metadata = await getMetadata(signer, offerId);
+            console.log('About to call getMetadata...');
+            const metadata = await getMetadata(walletClient, offerId);
+            console.log('getMetadata returned:', metadata);
+            
+            if (!metadata) {
+                throw new Error('No metadata returned from contract');
+            }
             
             const data = {
                 contractAddress: offerId,
@@ -46,14 +56,6 @@ export default function useOfferData(offerId) {
             setOfferData(data);
             hasLoadedRef.current = true;
             
-            // Get user address
-            try {
-                const address = await signer.getAddress();
-                setUserAddress(address);
-            } catch (err) {
-                console.error('Error getting user address:', err);
-            }
-            
         } catch (error) {
             console.error('Error fetching offer data:', error);
             setError(error.message || 'Failed to load offer data');
@@ -63,10 +65,20 @@ export default function useOfferData(offerId) {
     };
 
     useEffect(() => {
-        if (!hasLoadedRef.current) {
+        if (!hasLoadedRef.current && walletClient && offerId) {
             fetchOfferData();
         }
-    }, [signer, offerId]);
+    }, [walletClient, offerId]); // Only depend on these stable values
+
+    // Watch for user address changes and refetch data
+    useEffect(() => {
+        if (addressChanged && userAddress && hasLoadedRef.current) {
+            console.log('🔄 User address changed - refetching offer data for:', offerId);
+            hasLoadedRef.current = false;
+            fetchOfferData();
+            resetHasChanged(); // Reset the change flag
+        }
+    }, [addressChanged]); // Only depend on addressChanged
 
     // Manual refetch function
     const refetch = async () => {

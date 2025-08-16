@@ -57,6 +57,31 @@ Existing solutions partially address these problems, but often have limitations 
 - **One-click form collection** reduces friction for clients  
 - Optional **readable ENS profiles** for trust and reputation  
 
+## Future Business model
+
+1. **Transaction Fees on Contract Creation** (0.5-1%): Small fee charged when service providers deploy new offer contracts, similar to marketplace commissions but significantly lower than traditional platforms like Upwork (5-20%)
+
+2. **Premium Features** ($10-50/month):
+   - Advanced analytics dashboard for service providers
+   - Custom branding and white-label solutions
+   - Priority support and faster contract processing
+   - Bulk contract management tools
+
+2. **Payment Processing** (0.25%): Optional fee attached to invoices. Alternatively could have this apply to transactions over a given value.
+
+5. **Value-Added Services**:
+   - Legal contract template marketplace with vetted templates
+   - Dispute resolution services through decentralized arbitration
+   - Insurance products for high-value contracts
+   - Integration services with popular business tools (CRM, accounting software)
+
+6. **Data Insights & Analytics** (B2B2C): 
+   - Anonymized market rate insights for service categories
+   - Industry benchmarking reports
+   - Freelancer/service provider matching algorithms
+
+**Revenue Projections**: With 1000 active contracts per month at average $2000 value, transaction fees alone could generate $10-20K monthly revenue, with subscription and enterprise tiers providing additional recurring revenue streams. 
+
 ---
 
 ## Potential Future Work

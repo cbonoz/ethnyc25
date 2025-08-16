@@ -10,6 +10,7 @@ import { Content, Footer, Header } from 'antd/es/layout/layout';
 import Image from 'next/image';
 import ConnectButton from './ConnectButton';
 import NetworkStatus from './NetworkStatus';
+import Logo from './Logo';
 import { Theme } from '@ant-design/cssinjs';
 import { antdTheme, colors } from '../theme/colors';
 
@@ -41,20 +42,18 @@ function UiLayoutWrapper({ children }) {
 			<ConfigProvider theme={antdTheme}>
 				<Layout>
 					<Header style={{ background: '#fff', display: 'flex', alignItems: 'center' }}>
-						<Image
-							src="/logo.png"
-							alt="SimpleOffer Logo"
+						<Logo 
+							width={180}
+							height={48}
 							className="header-logo"
 							onClick={() => {
 								window.location.href = '/';
 							}}
-							width={180}
-							height={48}
 							style={{
 								cursor: 'pointer',
 								objectFit: 'contain',
 								maxHeight: '40px',
-								width: 'auto'
+								width: 'auto',
 							}}
 						/>
 

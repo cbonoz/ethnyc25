@@ -1,0 +1,396 @@
+'use client';
+
+import { 
+    readContract, 
+    writeContract, 
+    getContract,
+    formatUnits,
+    parseUnits,
+    createPublicClient,
+    http
+} from 'viem';
+import { handleContractError, formatDate, executeApprovalWithRetry } from '.';
+import { PYUSD_TOKEN_ADDRESS, ACTIVE_CHAIN } from '../constants';
+import { SIMPLEOFFER_CONTRACT } from './metadata';
+
+
+// Create a public client for reading contract data
+const publicClient = createPublicClient({
+    chain: ACTIVE_CHAIN,
+    transport: http('https://rpc2.sepolia.org', {
+        retryCount: 3,
+        retryDelay: 1000,
+        fetchOptions: {
+            timeout: 15000
+        }
+    })
+});
+
+// Helper function to add timeout to contract reads
+const readContractWithTimeout = async (contractCall, timeoutMs = 10000) => {
+    return Promise.race([
+        contractCall,
+        new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Contract read timeout')), timeoutMs)
+        )
+    ]);
+};
+
+// Simple rate limiting cache
+const metadataCache = new Map();
+const CACHE_DURATION = 30000; // 30 seconds
+
+// Add a simple delay function
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Track concurrent requests to avoid overwhelming RPC
+let activeRequests = 0;
+const MAX_CONCURRENT_REQUESTS = 2;
+
+const getCachedMetadata = (address) => {
+    const cached = metadataCache.get(address);
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+        console.log('📦 Using cached metadata for:', address);
+        return cached.data;
+    }
+    return null;
+};
+
+const setCachedMetadata = (address, data) => {
+    metadataCache.set(address, {
+        data,
+        timestamp: Date.now()
+    });
+};
+
+// Combined metadata and status fetch (for compatibility with existing code)
+export const getMetadata = async (walletClient, address) => {
+    console.log('🔍 getMetadata function called with:', { 
+        walletClient: !!walletClient, 
+        address,
+        publicClient: !!publicClient,
+        activeRequests
+    });
+    
+    // Check cache first
+    const cached = getCachedMetadata(address);
+    if (cached) {
+        return cached;
+    }
+    
+    // Wait if too many concurrent requests
+    while (activeRequests >= MAX_CONCURRENT_REQUESTS) {
+        console.log('⏳ Waiting for available request slot...');
+        await delay(500);
+    }
+    
+    activeRequests++;
+    
+    try {
+        console.log('Fetching metadata for contract:', address);
+        
+        // First check if the contract exists
+        console.log('🔍 Checking if contract exists...');
+        const code = await publicClient.getCode({ address });
+        console.log('Contract code exists:', !!code && code !== '0x');
+        
+        if (!code || code === '0x') {
+            throw new Error('Contract does not exist at this address');
+        }
+        
+        // Get offer metadata
+        console.log('📞 Calling publicClient.readContract for getOfferMetadata...');
+        const metadata = await readContractWithTimeout(
+            publicClient.readContract({
+                address: address,
+                abi: SIMPLEOFFER_CONTRACT.abi,
+                functionName: 'getOfferMetadata',
+            })
+        );
+        
+        console.log('✅ Metadata result:', metadata);
+
+        // Get offer status  
+        console.log('📞 Calling publicClient.readContract for getOfferStatus...');
+        const status = await readContractWithTimeout(
+            publicClient.readContract({
+                address: address,
+                abi: SIMPLEOFFER_CONTRACT.abi,
+                functionName: 'getOfferStatus',
+            })
+        );
+        
+        console.log('✅ Status result:', status);
+
+        // Format amount from Wei (6 decimals for PYUSD)
+        const formattedAmount = formatUnits(metadata.amount, 6);
+        console.log('Formatted amount:', formattedAmount);
+        
+        const result = {
+            title: metadata.title,
+            description: metadata.description, 
+            serviceType: metadata.serviceType,
+            category: metadata.serviceType, // Map serviceType to category for frontend compatibility
+            deliverables: metadata.deliverables,
+            amount: formattedAmount,
+            deadline: new Date(Number(metadata.deadline) * 1000).toLocaleDateString(),
+            isActive: metadata.isActive,
+            createdAt: formatDate(new Date(Number(metadata.createdAt) * 1000)),
+            owner: status.owner,
+            client: status.client,
+            isAccepted: status.isAccepted,
+            isFunded: status.isFunded,
+            isCompleted: status.isCompleted
+        };
+        
+        console.log('Final processed result:', result);
+        
+        // Cache the result
+        setCachedMetadata(address, result);
+        
+        return result;
+    } catch (error) {
+        console.error('❌ Error fetching metadata:', error);
+        console.error('Error details:', error.message, error.stack);
+        handleContractError(error, 'fetch metadata');
+        return null;
+    } finally {
+        activeRequests--;
+        console.log('Active requests:', activeRequests);
+    }
+};
+
+// Get offer metadata using viem
+export const getOfferMetadata = async (walletClient, contractAddress) => {
+    try {
+        const metadata = await publicClient.readContract({
+            address: contractAddress,
+            abi: SIMPLEOFFER_CONTRACT.abi,
+            functionName: 'getOfferMetadata',
+        });
+
+        return {
+            title: metadata.title,
+            description: metadata.description,
+            serviceType: metadata.serviceType,
+            deliverables: metadata.deliverables,
+            amount: formatUnits(metadata.amount, 6),
+            deadline: formatDate(new Date(Number(metadata.deadline) * 1000)),
+            isActive: metadata.isActive,
+            createdAt: formatDate(new Date(Number(metadata.createdAt) * 1000))
+        };
+    } catch (error) {
+        console.error('Error fetching offer metadata:', error);
+        handleContractError(error, 'fetch offer metadata');
+        return null;
+    }
+};
+
+// Get offer status using viem
+export const getOfferStatus = async (walletClient, contractAddress) => {
+    try {
+        const status = await publicClient.readContract({
+            address: contractAddress,
+            abi: SIMPLEOFFER_CONTRACT.abi,
+            functionName: 'getOfferStatus',
+        });
+
+        return {
+            owner: status.owner,
+            client: status.client,
+            isAccepted: status.isAccepted,
+            isFunded: status.isFunded,
+            isCompleted: status.isCompleted
+        };
+    } catch (error) {
+        console.error('Error fetching offer status:', error);
+        handleContractError(error, 'fetch offer status');
+        return null;
+    }
+};
+
+// Get contract balance using viem
+export const getContractBalance = async (walletClient, contractAddress) => {
+    try {
+        const balance = await publicClient.readContract({
+            address: contractAddress,
+            abi: SIMPLEOFFER_CONTRACT.abi,
+            functionName: 'getContractBalance',
+        });
+
+        return formatUnits(balance, 6);
+    } catch (error) {
+        console.error('Error fetching contract balance:', error);
+        return '0';
+    }
+};
+
+// Get all offer requests using viem
+export const getOfferRequests = async (walletClient, contractAddress) => {
+    try {
+        const requests = await publicClient.readContract({
+            address: contractAddress,
+            abi: SIMPLEOFFER_CONTRACT.abi,
+            functionName: 'getAllOfferRequests',
+        });
+
+        return requests.map(request => ({
+            clientAddress: request.clientAddress,
+            message: request.message,
+            requestedAt: formatDate(new Date(Number(request.requestedAt) * 1000)),
+            isApproved: request.isApproved,
+            isRejected: request.isRejected
+        }));
+    } catch (error) {
+        console.error('Error fetching offer requests:', error);
+        return [];
+    }
+};
+
+// Request and fund offer in one transaction using viem
+export const requestAndFundOffer = async (walletClient, contractAddress, message) => {
+    try {
+        // Get the offer amount for approval
+        const metadata = await publicClient.readContract({
+            address: contractAddress,
+            abi: SIMPLEOFFER_CONTRACT.abi,
+            functionName: 'getOfferMetadata',
+        });
+        
+        const amount = metadata.amount;
+
+        // First approve PYUSD spending
+        const approvalTx = await walletClient.writeContract({
+            address: PYUSD_TOKEN_ADDRESS,
+            abi: [
+                {
+                    "name": "approve",
+                    "type": "function",
+                    "stateMutability": "nonpayable",
+                    "inputs": [
+                        {"name": "spender", "type": "address"},
+                        {"name": "amount", "type": "uint256"}
+                    ],
+                    "outputs": [{"name": "", "type": "bool"}]
+                }
+            ],
+            functionName: 'approve',
+            args: [contractAddress, amount],
+        });
+
+        console.log('Approval transaction:', approvalTx);
+
+        // Then request and fund the offer
+        const requestTx = await walletClient.writeContract({
+            address: contractAddress,
+            abi: SIMPLEOFFER_CONTRACT.abi,
+            functionName: 'requestAndFundOffer',
+            args: [message],
+        });
+
+        console.log('Request and fund transaction:', requestTx);
+        return requestTx;
+    } catch (error) {
+        console.error('Error requesting and funding offer:', error);
+        handleContractError(error, 'request and fund offer');
+        throw error;
+    }
+};
+
+// Complete offer (owner only) using viem
+export const completeOffer = async (walletClient, contractAddress) => {
+    try {
+        const tx = await walletClient.writeContract({
+            address: contractAddress,
+            abi: SIMPLEOFFER_CONTRACT.abi,
+            functionName: 'completeOffer',
+        });
+        
+        console.log('Offer completed successfully:', tx);
+        return tx;
+    } catch (error) {
+        console.error('Error completing offer:', error);
+        handleContractError(error, 'complete offer');
+        throw error;
+    }
+};
+
+// Withdraw funds (owner only) using viem
+export const withdrawFunds = async (walletClient, contractAddress) => {
+    try {
+        const tx = await walletClient.writeContract({
+            address: contractAddress,
+            abi: SIMPLEOFFER_CONTRACT.abi,
+            functionName: 'withdrawFunds',
+        });
+        
+        console.log('Funds withdrawn successfully:', tx);
+        return tx;
+    } catch (error) {
+        console.error('Error withdrawing funds:', error);
+        handleContractError(error, 'withdraw funds');
+        throw error;
+    }
+};
+
+// Approve offer request (owner only) using viem
+export const approveOfferRequest = async (walletClient, contractAddress, clientAddress) => {
+    try {
+        const tx = await walletClient.writeContract({
+            address: contractAddress,
+            abi: SIMPLEOFFER_CONTRACT.abi,
+            functionName: 'approveOfferRequest',
+            args: [clientAddress],
+        });
+        
+        console.log('Request approved successfully:', tx);
+        return tx;
+    } catch (error) {
+        console.error('Error approving request:', error);
+        handleContractError(error, 'approve request');
+        throw error;
+    }
+};
+
+// Reject offer request (owner only) using viem
+export const rejectOfferRequest = async (walletClient, contractAddress, clientAddress) => {
+    try {
+        const tx = await walletClient.writeContract({
+            address: contractAddress,
+            abi: SIMPLEOFFER_CONTRACT.abi,
+            functionName: 'rejectOfferRequest',
+            args: [clientAddress],
+        });
+        
+        console.log('Request rejected successfully:', tx);
+        return tx;
+    } catch (error) {
+        console.error('Error rejecting request:', error);
+        handleContractError(error, 'reject request');
+        throw error;
+    }
+};
+
+// Deactivate offer (owner only) using viem
+export const deactivateOffer = async (walletClient, contractAddress) => {
+    try {
+        const tx = await walletClient.writeContract({
+            address: contractAddress,
+            abi: SIMPLEOFFER_CONTRACT.abi,
+            functionName: 'deactivateOffer',
+        });
+        
+        console.log('Offer deactivated successfully:', tx);
+        return tx;
+    } catch (error) {
+        console.error('Error deactivating offer:', error);
+        handleContractError(error, 'deactivate offer');
+        throw error;
+    }
+};
+
+// Get client request information for a contract (owner only)
+export const getClientRequest = (contractAddress) => {
+    const offerRequests = JSON.parse(localStorage.getItem('offerRequests') || '{}');
+    return offerRequests[contractAddress] || null;
+};

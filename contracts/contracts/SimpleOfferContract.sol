@@ -59,6 +59,7 @@ contract SimpleOfferContract is ReentrancyGuard {
     event OfferFunded(address indexed funder, uint256 amount);
     event OfferCompleted(address indexed owner, uint256 timestamp);
     event FundsWithdrawn(address indexed recipient, uint256 amount);
+    event OfferDeactivated(address indexed owner, uint256 timestamp);
     
     modifier onlyOwner() {
         require(msg.sender == owner, "Only offer owner can call this function");
@@ -96,7 +97,42 @@ contract SimpleOfferContract is ReentrancyGuard {
         emit OfferCreated(owner, _amount, _title);
     }
     
-    // Request to work on this offer with a message
+    // Request and immediately fund offer (one-step process)
+    function requestAndFundOffer(string memory _message) external nonReentrant {
+        require(offerMetadata.isActive, "Offer is not active");
+        require(!isAccepted, "Offer already accepted");
+        require(msg.sender != owner, "Owner cannot request their own offer");
+        require(clientOfferRequests[msg.sender].clientAddress == address(0), "Already requested");
+        
+        // Create the request
+        clientOfferRequests[msg.sender] = ClientOfferRequest({
+            clientAddress: msg.sender,
+            message: _message,
+            requestedAt: block.timestamp,
+            isApproved: true, // Auto-approved since they're paying
+            isRejected: false
+        });
+        
+        requesterAddresses.push(msg.sender);
+        
+        // Set this client as the chosen one and accept the offer
+        client = msg.sender;
+        pendingClient = msg.sender;
+        isAccepted = true;
+        
+        // Transfer payment
+        uint256 amount = offerMetadata.amount;
+        require(paymentToken.transferFrom(msg.sender, address(this), amount), "Payment transfer failed");
+        isFunded = true;
+        
+        // Emit events
+        emit ClientRequested(msg.sender, _message, block.timestamp);
+        emit OfferRequestApproved(msg.sender, block.timestamp);
+        emit OfferAccepted(msg.sender, block.timestamp);
+        emit OfferFunded(msg.sender, amount);
+    }
+
+    // Request to work on this offer with a message (original method for manual approval flow)
     function requestOffer(string memory _message) external {
         require(offerMetadata.isActive, "Offer is not active");
         require(!isAccepted, "Offer already accepted");
@@ -199,6 +235,13 @@ contract SimpleOfferContract is ReentrancyGuard {
         emit FundsWithdrawn(client, balance);
     }
     
+    // Deactivate offer (owner only) - prevents new applications but allows existing work to continue
+    function deactivateOffer() external onlyOwner {
+        require(offerMetadata.isActive, "Offer is already deactivated");
+        offerMetadata.isActive = false;
+        emit OfferDeactivated(owner, block.timestamp);
+    }
+    
     // Get basic offer metadata
     function getOfferMetadata() external view returns (OfferMetadata memory) {
         return offerMetadata;
@@ -256,5 +299,21 @@ contract SimpleOfferContract is ReentrancyGuard {
     // Get number of requests
     function getRequestCount() external view returns (uint256) {
         return requesterAddresses.length;
+    }
+    
+    // Get all offer requests in a single call
+    function getAllOfferRequests() external view returns (ClientOfferRequest[] memory) {
+        ClientOfferRequest[] memory allRequests = new ClientOfferRequest[](requesterAddresses.length);
+        
+        for (uint i = 0; i < requesterAddresses.length; i++) {
+            allRequests[i] = clientOfferRequests[requesterAddresses[i]];
+        }
+        
+        return allRequests;
+    }
+    
+    // Get offer requests for a specific client address
+    function getClientOfferRequests(address _clientAddress) external view returns (ClientOfferRequest memory) {
+        return clientOfferRequests[_clientAddress];
     }
 }

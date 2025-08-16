@@ -117,13 +117,14 @@ export default function OfferPage({ params }) {
                 <div style={{ textAlign: 'center', marginBottom: 32 }}>
                     <Logo style={{ marginBottom: 16 }} />
                     <div style={{ marginBottom: 16 }}>
-                        <Tag color={offerData.isActive ? 'green' : 'red'} style={{ fontSize: '14px', padding: '4px 12px' }}>
+                        {isOwner && (<div>
+                               <Tag color={offerData.isActive ? 'green' : 'red'} style={{ fontSize: '14px', padding: '4px 12px' }}>
                             {offerData.isActive ? 'Active' : 'Inactive'}
                         </Tag>
-                        {isOwner && (
                             <Tag color="gold" style={{ fontSize: '14px', padding: '4px 12px', marginLeft: 8 }}>
                                 Owner View
                             </Tag>
+                            </div>
                         )}
                     </div>
                 </div>

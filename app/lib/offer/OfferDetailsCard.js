@@ -30,12 +30,29 @@ export default function OfferDetailsCard({ offerData }) {
                 <Space>
                     <Tag color="blue">{offerData.category}</Tag>
                     <Tag color="purple">{offerData.businessType}</Tag>
+                    <Tag color={offerData.isActive ? "green" : "red"}>
+                        {offerData.isActive ? "Active" : "Inactive"}
+                    </Tag>
                 </Space>
             </div>
             
             <Paragraph style={{ fontSize: '16px', lineHeight: '1.6' }}>
                 {offerData.description}
             </Paragraph>
+
+            {!offerData.isActive && (
+                <div style={{ 
+                    padding: '12px', 
+                    backgroundColor: '#fff2f0', 
+                    borderRadius: '6px', 
+                    marginBottom: '16px',
+                    border: '1px solid #ffccc7'
+                }}>
+                    <Text strong style={{ color: '#ff4d4f' }}>
+                        ⚠️ This offer is no longer accepting new requests
+                    </Text>
+                </div>
+            )}
 
             <Divider />
 

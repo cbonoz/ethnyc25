@@ -18,13 +18,13 @@ import {
     WalletOutlined,
     MessageOutlined
 } from '@ant-design/icons';
-import { requestOffer, acceptOffer, fundContract } from '../../util/appContract';
-import { useEthersSigner } from '../../hooks/useEthersSigner';
+import { requestOffer, acceptOffer, fundContract, getOfferRequests, requestAndFundOffer } from '../../util/appContractViem';
+import { useWalletClient } from '../../hooks/useWalletClient';
 
 const { Title, Text, Paragraph } = Typography;
 
 export default function ClientActionsCard({ offerData, onUpdate }) {
-    const signer = useEthersSigner();
+    const walletClient = useWalletClient();
     const [loading, setLoading] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
     const [userApplication, setUserApplication] = useState(null);
@@ -36,29 +36,47 @@ export default function ClientActionsCard({ offerData, onUpdate }) {
 
     // Check if user has already applied
     useEffect(() => {
+        let isMounted = true;
+        
         const checkUserApplication = async () => {
-            if (signer && offerData.contractAddress) {
-                try {
-                    const userAddress = await signer.getAddress();
-                    const applications = await getOfferApplications(signer, offerData.contractAddress);
-                    const userApp = applications.find(app => app.clientAddress.toLowerCase() === userAddress.toLowerCase());
-                    
-                    if (userApp) {
-                        setUserApplication(userApp);
-                        setHasApplied(true);
-                        setIsApproved(userApp.isApproved);
-                    }
-                } catch (error) {
+            if (!walletClient || !offerData?.contractAddress) {
+                return;
+            }
+
+            try {
+                const userAddress = walletClient.account.address;
+                const applications = await getOfferRequests(walletClient, offerData.contractAddress);
+                
+                if (!isMounted) return; // Component unmounted
+                
+                const userApp = applications.find(app => 
+                    app && app.clientAddress && 
+                    app.clientAddress.toLowerCase() === userAddress.toLowerCase()
+                );
+                
+                if (userApp) {
+                    setUserApplication(userApp);
+                    setHasApplied(true);
+                    setIsApproved(userApp.isApproved);
+                }
+            } catch (error) {
+                if (isMounted) {
                     console.error('Error checking application status:', error);
                 }
             }
         };
 
-        checkUserApplication();
-    }, [signer, offerData.contractAddress]);
+        // Debounce the call to prevent rapid fire requests
+        const timeoutId = setTimeout(checkUserApplication, 300);
+
+        return () => {
+            isMounted = false;
+            clearTimeout(timeoutId);
+        };
+    }, [walletClient, offerData?.contractAddress]);
 
     const handleApply = () => {
-        if (!signer) {
+        if (!walletClient) {
             message.error('Please connect your wallet first');
             return;
         }
@@ -66,40 +84,27 @@ export default function ClientActionsCard({ offerData, onUpdate }) {
     };
 
     const handleSubmitRequest = async (values) => {
-        if (!signer) {
+        console.log('handleSubmitRequest called with values:', values);
+        
+        if (!walletClient) {
             message.error('Please connect your wallet first');
             return;
         }
 
         try {
             setLoading(true);
-            await requestOffer(signer, offerData.contractAddress, values.message);
-            message.success('Offer request submitted! The owner will review your request.');
+            
+            // Use the new combined method - request and fund in one transaction
+            await requestAndFundOffer(walletClient, offerData.contractAddress, values.message);
+            
+            message.success(`Request submitted and ${offerData.amount} PYUSD payment sent! The owner has been notified on-chain and can see your offer.`);
             setModalVisible(false);
             setHasApplied(true);
+            setIsApproved(true);
             form.resetFields();
             if (onUpdate) onUpdate();
         } catch (error) {
-            console.error('Error submitting request:', error);
-            message.error(`Failed to submit request: ${error.message}`);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleAcceptAndPay = async () => {
-        if (!signer) {
-            message.error('Please connect your wallet');
-            return;
-        }
-
-        try {
-            setLoading(true);
-            await acceptAndFundOffer(signer, offerData.contractAddress);
-            message.success('Offer accepted and payment sent! Work can now begin.');
-            if (onUpdate) onUpdate();
-        } catch (error) {
-            console.error('Error accepting and funding offer:', error);
+            console.error('Error submitting request and payment:', error);
             message.error(`Failed to complete transaction: ${error.message}`);
         } finally {
             setLoading(false);
@@ -166,23 +171,9 @@ export default function ClientActionsCard({ offerData, onUpdate }) {
                             block
                             onClick={handleApply}
                             disabled={!offerData.isActive}
-                            icon={<MessageOutlined />}
-                        >
-                            {offerData.isActive ? 'Request This Offer' : 'Offer Inactive'}
-                        </Button>
-                    )}
-
-                    {isApproved && !offerData.isAccepted && (
-                        <Button 
-                            type="primary" 
-                            size="large" 
-                            block
-                            onClick={handleAcceptAndPay}
-                            loading={loading}
                             icon={<WalletOutlined />}
-                            style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
                         >
-                            Accept & Pay {offerData.amount} PYUSD
+                            {offerData.isActive ? `Request & Pay ${offerData.amount} PYUSD` : 'Offer Inactive'}
                         </Button>
                     )}
 
@@ -231,7 +222,7 @@ export default function ClientActionsCard({ offerData, onUpdate }) {
 
             {/* Request Modal - Simplified to just message */}
             <Modal
-                title="Request This Offer"
+                title={`Request & Pay for This Offer (${offerData.amount} PYUSD)`}
                 open={modalVisible}
                 onCancel={() => setModalVisible(false)}
                 footer={null}
@@ -239,12 +230,12 @@ export default function ClientActionsCard({ offerData, onUpdate }) {
             >
                 <div style={{ marginBottom: 24 }}>
                     <Paragraph>
-                        Submit your application with a message including your contact information. 
-                        The owner will review your application and approve or reject it.
+                        Submit your application message. Upon confirmation, you'll pay <strong>{offerData.amount} PYUSD</strong> which 
+                        will be held in escrow until the work is completed.
                     </Paragraph>
                     <Paragraph type="secondary">
-                        <strong>Important:</strong> Please include your contact details (name, email, etc.) 
-                        in your message so the owner can reach you if necessary.
+                        <strong>Important:</strong> Make sure you have at least {offerData.amount} PYUSD in your wallet. 
+                        Include your contact details in the message below.
                     </Paragraph>
                 </div>
 
@@ -280,9 +271,10 @@ My contact details:
                             block 
                             size="large"
                             loading={loading}
-                            icon={<MessageOutlined />}
+                            icon={<WalletOutlined />}
+                            onClick={() => console.log('Submit button clicked')}
                         >
-                            Submit Application
+                            Submit Request & Pay {offerData.amount} PYUSD
                         </Button>
                     </Form.Item>
                 </Form>

@@ -60,7 +60,7 @@ export default function Navigation() {
                     style={{ cursor: 'pointer' }} 
                     onClick={() => router.push('/')}
                 >
-                    <Logo size="small" />
+                    '<Logo size="small" />
                 </div>
                 
                 <Space size="middle">

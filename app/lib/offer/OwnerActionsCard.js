@@ -27,14 +27,15 @@ import {
     getContractBalance,
     getOfferRequests,
     approveOfferRequest,
-    rejectOfferRequest
-} from '../../util/appContract';
-import { useEthersSigner } from '../../hooks/useEthersSigner';
+    rejectOfferRequest,
+    deactivateOffer
+} from '../../util/appContractViem';
+import { useWalletClient } from '../../hooks/useWalletClient';
 
 const { Title, Text, Paragraph } = Typography;
 
 export default function OwnerActionsCard({ offerData, onUpdate }) {
-    const signer = useEthersSigner();
+    const walletClient = useWalletClient();
     const [loading, setLoading] = useState(false);
     const [contractBalance, setContractBalance] = useState('0');
     const [offerRequests, setOfferRequests] = useState([]);
@@ -44,42 +45,58 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
 
     // Fetch contract balance and offer requests
     useEffect(() => {
+        let isMounted = true;
+        
         const fetchData = async () => {
-            if (signer && offerData?.contractAddress) {
-                try {
-                    // Fetch balance
-                    const balance = await getContractBalance(signer, offerData.contractAddress);
-                    setContractBalance(balance);
-                    
-                    // Fetch offer requests
-                    setLoadingRequests(true);
-                    const requests = await getOfferRequests(signer, offerData.contractAddress);
-                    setOfferRequests(requests);
-                    setLoadingRequests(false);
-                } catch (error) {
+            if (!walletClient || !offerData?.contractAddress) {
+                return;
+            }
+
+            try {
+                // Fetch balance
+                const balance = await getContractBalance(walletClient, offerData.contractAddress);
+                
+                if (!isMounted) return;
+                setContractBalance(balance);
+                
+                // Fetch offer requests
+                setLoadingRequests(true);
+                const requests = await getOfferRequests(walletClient, offerData.contractAddress);
+                
+                if (!isMounted) return;
+                setOfferRequests(requests);
+                setLoadingRequests(false);
+            } catch (error) {
+                if (isMounted) {
                     console.error('Error fetching data:', error);
                     setLoadingRequests(false);
                 }
             }
         };
 
-        fetchData();
-    }, [signer, offerData?.contractAddress]);
+        // Debounce the call
+        const timeoutId = setTimeout(fetchData, 300);
+        
+        return () => {
+            isMounted = false;
+            clearTimeout(timeoutId);
+        };
+    }, [walletClient, offerData?.contractAddress]);
 
     const handleApproveRequest = async (clientAddress) => {
-        if (!signer) {
+        if (!walletClient) {
             message.error('Please connect your wallet');
             return;
         }
 
         try {
             setLoading(true);
-            await approveOfferRequest(signer, offerData.contractAddress, clientAddress);
+            await approveOfferRequest(walletClient, offerData.contractAddress, clientAddress);
             message.success('Offer request approved!');
             if (onUpdate) onUpdate();
             
             // Refresh requests
-            const requests = await getOfferRequests(signer, offerData.contractAddress);
+            const requests = await getOfferRequests(walletClient, offerData.contractAddress);
             setOfferRequests(requests);
         } catch (error) {
             console.error('Error approving request:', error);
@@ -90,19 +107,19 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
     };
 
     const handleRejectRequest = async (clientAddress) => {
-        if (!signer) {
+        if (!walletClient) {
             message.error('Please connect your wallet');
             return;
         }
 
         try {
             setLoading(true);
-            await rejectOfferRequest(signer, offerData.contractAddress, clientAddress);
+            await rejectOfferRequest(walletClient, offerData.contractAddress, clientAddress);
             message.success('Offer request rejected');
             if (onUpdate) onUpdate();
             
             // Refresh requests
-            const requests = await getOfferRequests(signer, offerData.contractAddress);
+            const requests = await getOfferRequests(walletClient, offerData.contractAddress);
             setOfferRequests(requests);
         } catch (error) {
             console.error('Error rejecting request:', error);
@@ -113,14 +130,14 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
     };
 
     const handleCompleteOffer = async () => {
-        if (!signer) {
+        if (!walletClient) {
             message.error('Please connect your wallet');
             return;
         }
 
         try {
             setLoading(true);
-            await completeOffer(signer, offerData.contractAddress);
+            await completeOffer(walletClient, offerData.contractAddress);
             message.success('Offer marked as completed!');
             if (onUpdate) onUpdate();
         } catch (error) {
@@ -132,7 +149,7 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
     };
 
     const handleWithdrawFunds = async () => {
-        if (!signer) {
+        if (!walletClient) {
             message.error('Please connect your wallet');
             return;
         }
@@ -144,11 +161,11 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
 
         try {
             setLoading(true);
-            await withdrawFunds(signer, offerData.contractAddress);
+            await withdrawFunds(walletClient, offerData.contractAddress);
             message.success('Funds withdrawn successfully!');
             if (onUpdate) onUpdate();
             // Update balance
-            const newBalance = await getContractBalance(signer, offerData.contractAddress);
+            const newBalance = await getContractBalance(walletClient, offerData.contractAddress);
             setContractBalance(newBalance);
         } catch (error) {
             console.error('Error withdrawing funds:', error);
@@ -162,6 +179,25 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
         const offerUrl = `${window.location.origin}/offer/${offerData.contractAddress}`;
         navigator.clipboard.writeText(offerUrl);
         message.success('Offer link copied to clipboard!');
+    };
+
+    const handleDeactivateOffer = async () => {
+        if (!walletClient) {
+            message.error('Please connect your wallet first');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            await deactivateOffer(walletClient, offerData.contractAddress);
+            message.success('Offer deactivated successfully! No new clients can request this offer.');
+            if (onUpdate) onUpdate();
+        } catch (error) {
+            console.error('Error deactivating offer:', error);
+            message.error(`Failed to deactivate offer: ${error.message}`);
+        } finally {
+            setLoading(false);
+        }
     };
 
     // Helper function to get status info
@@ -192,6 +228,21 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
             style={{ position: 'sticky', top: '24px' }}
         >
             <Space direction="vertical" style={{ width: '100%' }} size="large">
+                {/* Deactivated Status Warning */}
+                {!offerData.isActive && (
+                    <div style={{ 
+                        padding: '12px', 
+                        backgroundColor: '#fff2f0', 
+                        borderRadius: '6px', 
+                        textAlign: 'center',
+                        border: '1px solid #ffccc7'
+                    }}>
+                        <Text strong style={{ color: '#ff4d4f', fontSize: '14px' }}>
+                            ⚠️ This offer is deactivated - no new clients can request it
+                        </Text>
+                    </div>
+                )}
+
                 {/* Contract Status */}
                 <div style={{ textAlign: 'center' }}>
                     <Title level={3} style={{ color: '#ec348b', margin: 0 }}>
@@ -366,6 +417,21 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
                     >
                         Share Offer Link
                     </Button>
+
+                    {/* Deactivate Offer Button - only show for active offers that haven't been accepted */}
+                    {offerData.isActive && !offerData.isAccepted && (
+                        <Button 
+                            type="default"
+                            size="large" 
+                            block
+                            icon={<CloseCircleOutlined />}
+                            onClick={handleDeactivateOffer}
+                            loading={loading}
+                            danger
+                        >
+                            Deactivate Offer
+                        </Button>
+                    )}
 
                     {/* Complete Work Button */}
                     {offerData.isFunded && !offerData.isCompleted && (

@@ -811,6 +811,19 @@
   dependencies:
     "@dynamic-labs/logger" "4.26.0"
 
+"@dynamic-labs/client@4.26.0":
+  version "4.26.0"
+  resolved "https://registry.yarnpkg.com/@dynamic-labs/client/-/client-4.26.0.tgz#c2ece3757dc10b873c86124601b1e0d136728c3f"
+  integrity sha512-h1JbyGiMDKmpgM1/hVI8yzvojDaXTk9eipbxRlWV7s0ObcwfLwJ4bFRy8KgPssRUc4kzTHSspiicnCF7RuBlHg==
+  dependencies:
+    "@dynamic-labs/assert-package-version" "4.26.0"
+    "@dynamic-labs/logger" "4.26.0"
+    "@dynamic-labs/message-transport" "4.26.0"
+    "@dynamic-labs/sdk-api-core" "0.0.749"
+    "@dynamic-labs/types" "4.26.0"
+    "@vue/reactivity" "^3.4.21"
+    eventemitter3 "5.0.1"
+
 "@dynamic-labs/embedded-wallet-evm@4.26.0":
   version "4.26.0"
   resolved "https://registry.yarnpkg.com/@dynamic-labs/embedded-wallet-evm/-/embedded-wallet-evm-4.26.0.tgz#d1f55636b189af998e5859275f1f0676e7a06fba"
@@ -898,7 +911,7 @@
   dependencies:
     eventemitter3 "5.0.1"
 
-"@dynamic-labs/message-transport@^4.25.3":
+"@dynamic-labs/message-transport@4.26.0", "@dynamic-labs/message-transport@^4.25.3":
   version "4.26.0"
   resolved "https://registry.yarnpkg.com/@dynamic-labs/message-transport/-/message-transport-4.26.0.tgz#8f918ad2c6e4ec704a2b5b33277ab906094bda5f"
   integrity sha512-yNSGIw88JSvgiy7axwYZP2/0IinKKonzXuG1e1qSvQQa8Ptt9pqztxqn10b8VdK1lhFU8bVZBzJNf/eQ6/BNwQ==
@@ -1036,6 +1049,16 @@
     buffer "6.0.3"
     eventemitter3 "5.0.1"
     tldts "6.0.16"
+
+"@dynamic-labs/viem-extension@^4.26.0":
+  version "4.26.0"
+  resolved "https://registry.yarnpkg.com/@dynamic-labs/viem-extension/-/viem-extension-4.26.0.tgz#93f3951c0021fc776107e7dde1ccd8cb787c720e"
+  integrity sha512-0BCOZYI4+KTARRQC8NpJTURqPZffprYfZxqHIBvXgXbKUKz9sNlCns1TuzjUNH+i4MEB5Ai8c67o1jiIpN/z3w==
+  dependencies:
+    "@dynamic-labs/assert-package-version" "4.26.0"
+    "@dynamic-labs/client" "4.26.0"
+    "@dynamic-labs/message-transport" "4.26.0"
+    "@dynamic-labs/types" "4.26.0"
 
 "@dynamic-labs/waas-evm@4.26.0":
   version "4.26.0"
@@ -10948,7 +10971,7 @@ viem@2.31.0:
     ox "0.7.1"
     ws "8.18.2"
 
-viem@2.x, viem@>=2.29.0, viem@^2.1.1, viem@^2.27.2, viem@^2.28.4, viem@^2.31.7:
+viem@>=2.29.0, viem@^2.1.1, viem@^2.27.2, viem@^2.28.4, viem@^2.31.7, viem@^2.33.3:
   version "2.33.3"
   resolved "https://registry.yarnpkg.com/viem/-/viem-2.33.3.tgz#b69d7ff9edf649d1b7d9218e0225bcadc83a8caa"
   integrity sha512-aWDr6i6r3OfNCs0h9IieHFhn7xQJJ8YsuA49+9T5JRyGGAkWhLgcbLq2YMecgwM7HdUZpx1vPugZjsShqNi7Gw==
