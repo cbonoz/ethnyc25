@@ -37,6 +37,8 @@
     ".next/types/**/*.ts"
   ],
   "exclude": [
+    "contracts",
+    "hardhat.config.ts",
     "contracts/out",
     "contracts/coverage",
     "contracts/artifacts",
