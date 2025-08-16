@@ -10,8 +10,7 @@ export async function deployContract(
     serviceType,
     deliverables,
     amount,
-    deadline,
-    clientAddress
+    deadline
 ) {
     try {
         // Check if signer is available and connected
@@ -49,14 +48,9 @@ export async function deployContract(
         console.log(
             'Deploying offer contract...',
             'Title:', title,
-            'Description:', description,
-            'Service Type:', serviceType,
-            'Deliverables:', deliverables,
-            'Amount:', amount,
             'Amount in Wei:', amountInWei.toString(),
             'Deadline:', deadline,
-            'PYUSD Address:', PYUSD_TOKEN_ADDRESS,
-            'Client Address:', clientAddress
+            'PYUSD Address:', PYUSD_TOKEN_ADDRESS
         );
 
         const contract = await factory.deploy(
@@ -66,8 +60,7 @@ export async function deployContract(
             deliverables,
             amountInWei,
             deadline,
-            PYUSD_TOKEN_ADDRESS,
-            clientAddress
+            PYUSD_TOKEN_ADDRESS
         );
 
         await contract.deployed();
@@ -151,4 +144,173 @@ export const getContractBalance = async (signer, contractAddress) => {
         console.error('Error getting contract balance:', error);
         return '0';
     }
+};
+
+// Apply for offer with message (simplified flow)
+export const applyForOffer = async (signer, contractAddress, message) => {
+    try {
+        const contract = new ethers.Contract(contractAddress, SIMPLEOFFER_CONTRACT.abi, signer);
+        
+        // Apply for the offer with just a message
+        const applyTx = await contract.applyForOffer(message);
+        await applyTx.wait();
+        
+        console.log('Application submitted successfully');
+        return applyTx;
+    } catch (error) {
+        console.error('Error applying for offer:', error);
+        handleContractError(error, 'apply for offer');
+    }
+};
+
+// Get all applications for an offer (owner can see these)
+export const getOfferApplications = async (signer, contractAddress) => {
+    try {
+        const contract = new ethers.Contract(contractAddress, SIMPLEOFFER_CONTRACT.abi, signer);
+        
+        // Get all applicant addresses
+        const applicantAddresses = await contract.getApplicantAddresses();
+        
+        // Get details for each application
+        const applications = await Promise.all(
+            applicantAddresses.map(async (address) => {
+                const application = await contract.getClientApplication(address);
+                return {
+                    clientAddress: application.clientAddress,
+                    message: application.message,
+                    appliedAt: new Date(application.appliedAt.toNumber() * 1000).toISOString(),
+                    isApproved: application.isApproved,
+                    isRejected: application.isRejected
+                };
+            })
+        );
+        
+        return applications;
+    } catch (error) {
+        console.error('Error getting applications:', error);
+        return [];
+    }
+};
+
+// Approve application (owner only)
+export const approveApplication = async (signer, contractAddress, clientAddress) => {
+    try {
+        const contract = new ethers.Contract(contractAddress, SIMPLEOFFER_CONTRACT.abi, signer);
+        
+        const approveTx = await contract.approveApplication(clientAddress);
+        await approveTx.wait();
+        
+        console.log('Application approved successfully');
+        return approveTx;
+    } catch (error) {
+        console.error('Error approving application:', error);
+        handleContractError(error, 'approve application');
+    }
+};
+
+// Reject application (owner only)
+export const rejectApplication = async (signer, contractAddress, clientAddress) => {
+    try {
+        const contract = new ethers.Contract(contractAddress, SIMPLEOFFER_CONTRACT.abi, signer);
+        
+        const rejectTx = await contract.rejectApplication(clientAddress);
+        await rejectTx.wait();
+        
+        console.log('Application rejected successfully');
+        return rejectTx;
+    } catch (error) {
+        console.error('Error rejecting application:', error);
+        handleContractError(error, 'reject application');
+    }
+};
+
+// Accept offer and fund (approved client only)
+export const acceptAndFundOffer = async (signer, contractAddress) => {
+    try {
+        const contract = new ethers.Contract(contractAddress, SIMPLEOFFER_CONTRACT.abi, signer);
+        
+        // Get the offer amount for approval
+        const metadata = await contract.getOfferMetadata();
+        const amount = metadata.amount;
+        
+        // Approve PYUSD spending
+        await executeApprovalWithRetry(signer, PYUSD_TOKEN_ADDRESS, contractAddress, amount);
+        
+        // Accept the offer
+        const acceptTx = await contract.acceptOffer();
+        await acceptTx.wait();
+        
+        // Fund the contract
+        const fundTx = await contract.fundContract();
+        await fundTx.wait();
+        
+        console.log('Offer accepted and funded successfully');
+        return { acceptTx, fundTx };
+    } catch (error) {
+        console.error('Error accepting and funding offer:', error);
+        handleContractError(error, 'accept and fund offer');
+    }
+};
+
+// Approve request and begin work (owner only)
+export const approveRequest = async (signer, contractAddress) => {
+    try {
+        // Update request status to approved
+        const offerRequests = JSON.parse(localStorage.getItem('offerRequests') || '{}');
+        if (offerRequests[contractAddress]) {
+            offerRequests[contractAddress].status = 'approved';
+            offerRequests[contractAddress].approvedAt = new Date().toISOString();
+            localStorage.setItem('offerRequests', JSON.stringify(offerRequests));
+        }
+        
+        console.log('Request approved - work can begin');
+        return true;
+    } catch (error) {
+        console.error('Error approving request:', error);
+        throw error;
+    }
+};
+
+// Reject request and return funds (owner only)
+export const rejectRequest = async (signer, contractAddress) => {
+    try {
+        // Call emergency withdraw to return funds to client
+        const contract = new ethers.Contract(contractAddress, SIMPLEOFFER_CONTRACT.abi, signer);
+        
+        // Get current request info
+        const offerRequests = JSON.parse(localStorage.getItem('offerRequests') || '{}');
+        const request = offerRequests[contractAddress];
+        
+        if (!request) {
+            throw new Error('No request found for this contract');
+        }
+        
+        // Check contract balance
+        const balance = await contract.getContractBalance();
+        if (balance.eq(0)) {
+            throw new Error('No funds to return');
+        }
+        
+        // Return funds to client (we'll need to add this function to the contract)
+        // For now, we'll use the owner's withdraw capability and manually return
+        const tx = await contract.withdrawFunds();
+        await tx.wait();
+        
+        // Update request status
+        offerRequests[contractAddress].status = 'rejected';
+        offerRequests[contractAddress].rejectedAt = new Date().toISOString();
+        localStorage.setItem('offerRequests', JSON.stringify(offerRequests));
+        
+        console.log('Request rejected and funds prepared for return');
+        return tx;
+    } catch (error) {
+        console.error('Error rejecting request:', error);
+        handleContractError(error, 'reject request');
+    }
+};
+
+// Get client request information for a contract (owner only)
+export const getClientRequest = (contractAddress) => {
+    const offerRequests = JSON.parse(localStorage.getItem('offerRequests') || '{}');
+    return offerRequests[contractAddress] || null;
 };

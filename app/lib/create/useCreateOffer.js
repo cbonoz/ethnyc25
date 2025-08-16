@@ -55,9 +55,6 @@ export default function useCreateOffer() {
             deadlineDate.setDate(deadlineDate.getDate() + 30); // Default 30 days from now
             const deadline = Math.floor(deadlineDate.getTime() / 1000);
 
-            // For now, use a placeholder client address (could be updated later or made configurable)
-            const placeholderClient = '0x0000000000000000000000000000000000000001';
-
             // Deploy the smart contract using updated appContract.js
             const contract = await deployContract(
                 signer,
@@ -66,8 +63,7 @@ export default function useCreateOffer() {
                 finalOfferData.category, // serviceType
                 finalOfferData.deliverables,
                 finalOfferData.amount,
-                deadline,
-                placeholderClient // Will be updated when client accepts
+                deadline
             );
 
             if (contract && contract.address) {

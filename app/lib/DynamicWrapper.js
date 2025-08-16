@@ -37,6 +37,39 @@ const DynamicWrapper = ({ children }) => {
         appLogoUrl: "/logo.png",
         primaryColor: "#ec348b",
         borderRadius: 8,
+        // Add Sepolia network support for Dynamic
+        overrides: {
+          evmNetworks: [
+            {
+              blockExplorerUrls: ['https://etherscan.io/'],
+              chainId: 1,
+              chainName: 'Ethereum Mainnet',
+              iconUrls: ['https://app.dynamic.xyz/assets/networks/eth.svg'],
+              nativeCurrency: {
+                decimals: 18,
+                name: 'Ether',
+                symbol: 'ETH',
+              },
+              networkId: 1,
+              rpcUrls: ['https://mainnet.infura.io/v3/'],
+              vanityName: 'Ethereum',
+            },
+            {
+              blockExplorerUrls: ['https://sepolia.etherscan.io/'],
+              chainId: 11155111,
+              chainName: 'Sepolia',
+              iconUrls: ['https://app.dynamic.xyz/assets/networks/eth.svg'],
+              nativeCurrency: {
+                decimals: 18,
+                name: 'Sepolia Ether',
+                symbol: 'SEP',
+              },
+              networkId: 11155111,
+              rpcUrls: ['https://rpc.sepolia.org/'],
+              vanityName: 'Sepolia',
+            }
+          ]
+        }
       }}
     >
       <WagmiProvider config={config}>

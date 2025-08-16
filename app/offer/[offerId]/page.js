@@ -144,7 +144,10 @@ export default function OfferPage({ params }) {
                                 onUpdate={refetch}
                             />
                         ) : (
-                            <ClientActionsCard offerData={offerData} />
+                            <ClientActionsCard 
+                                offerData={offerData} 
+                                onUpdate={refetch}
+                            />
                         )}
                     </Col>
                 </Row>
@@ -155,6 +158,7 @@ export default function OfferPage({ params }) {
                         <OwnerOffersGrid 
                             offers={ownerOffers.filter(offer => offer.contractAddress !== offerId)} 
                             loading={offersLoading}
+                            showEmptyState={false}
                         />
                     </div>
                 )}

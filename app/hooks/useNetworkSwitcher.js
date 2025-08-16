@@ -59,29 +59,37 @@ export const useNetworkSwitcher = () => {
 
     setIsChecking(true);
     try {
-      console.log('Attempting to switch to network:', ACTIVE_CHAIN.id);
+      const targetChainId = ACTIVE_CHAIN.id;
+      console.log('Attempting to switch to network:', targetChainId);
       
       if (primaryWallet.connector.supportsNetworkSwitching()) {
         // Try different approaches for network switching
         try {
-          await primaryWallet.switchNetwork(ACTIVE_CHAIN.id);
+          await primaryWallet.switchNetwork(targetChainId);
+          console.log(`Success! Network switched to ${ACTIVE_CHAIN.name} (${targetChainId})`);
         } catch (switchError) {
           console.log('First switch attempt failed, trying alternative method:', switchError);
+          
           // Alternative: try using the connector directly
           if (primaryWallet.connector.switchNetwork) {
-            await primaryWallet.connector.switchNetwork(ACTIVE_CHAIN.id);
+            try {
+              await primaryWallet.connector.switchNetwork(targetChainId);
+              console.log(`Success! Network switched via connector to ${ACTIVE_CHAIN.name} (${targetChainId})`);
+            } catch (connectorError) {
+              console.log('Connector switch also failed:', connectorError);
+              throw new Error(`Unable to switch networks automatically. Please manually switch your wallet to ${ACTIVE_CHAIN.name} (Chain ID: ${targetChainId})`);
+            }
           } else {
-            throw switchError;
+            throw new Error(`Your wallet doesn't support automatic network switching. Please manually switch to ${ACTIVE_CHAIN.name} (Chain ID: ${targetChainId})`);
           }
         }
         
-        console.log(`Success! Network switched to ${ACTIVE_CHAIN.name} (${ACTIVE_CHAIN.id})`);
         // Wait a moment for the network to settle
         await new Promise(resolve => setTimeout(resolve, 1000));
         await checkNetwork();
         return true;
       } else {
-        throw new Error(`Your wallet doesn't support network switching. Please manually switch to ${ACTIVE_CHAIN.name}`);
+        throw new Error(`Your wallet doesn't support network switching. Please manually switch to ${ACTIVE_CHAIN.name} (Chain ID: ${targetChainId})`);
       }
     } catch (error) {
       console.error('Error switching network:', error);

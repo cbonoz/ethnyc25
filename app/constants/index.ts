@@ -1,26 +1,5 @@
 // Define sepolia chain object directly to avoid wagmi import issues in client components
-const sepolia = {
-    id: 11155111,
-    name: 'Sepolia',
-    network: 'sepolia',
-    nativeCurrency: {
-        decimals: 18,
-        name: 'Sepolia Ether',
-        symbol: 'SEP',
-    },
-    rpcUrls: {
-        default: {
-            http: ['https://rpc.sepolia.org'],
-        },
-        public: {
-            http: ['https://rpc.sepolia.org'],
-        },
-    },
-    blockExplorers: {
-        default: { name: 'Etherscan', url: 'https://sepolia.etherscan.io' },
-    },
-    testnet: true,
-};
+import { sepolia, mainnet } from 'viem/chains';
 
 export const siteConfig = {
     title: 'SimpleOffer | One-click On-chain Form + Payment',

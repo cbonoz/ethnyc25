@@ -52,7 +52,7 @@ const STATUS_CONFIG = {
     }
 };
 
-export default function OwnerOffersGrid({ offers, loading }) {
+export default function OwnerOffersGrid({ offers, loading, showEmptyState = true }) {
     const router = useRouter();
 
     const handleViewOffer = (contractAddress) => {
@@ -76,17 +76,20 @@ export default function OwnerOffersGrid({ offers, loading }) {
     }
 
     if (!offers || offers.length === 0) {
+        if (!showEmptyState) {
+            return null;
+        }
         return (
             <Card>
                 <Empty
-                    description="No offers created yet"
+                    description="No other offers found"
                     image={Empty.PRESENTED_IMAGE_SIMPLE}
                 >
                     <Button 
                         type="primary" 
                         onClick={() => router.push('/create')}
                     >
-                        Create Your First Offer
+                        Create Another Offer
                     </Button>
                 </Empty>
             </Card>

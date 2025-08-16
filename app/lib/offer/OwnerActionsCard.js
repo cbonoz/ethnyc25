@@ -25,7 +25,7 @@ import {
     SettingOutlined,
     WalletOutlined
 } from '@ant-design/icons';
-import { completeOffer, withdrawFunds, getContractBalance } from '../../util/appContract';
+import { completeOffer, withdrawFunds, getContractBalance, getOfferApplications, approveApplication, rejectApplication } from '../../util/appContract';
 import { useEthersSigner } from '../../hooks/useEthersSigner';
 import { useEffect } from 'react';
 
@@ -35,25 +35,79 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
     const signer = useEthersSigner();
     const [loading, setLoading] = useState(false);
     const [contractBalance, setContractBalance] = useState('0');
+    const [applications, setApplications] = useState([]);
+    const [loadingApps, setLoadingApps] = useState(false);
     const [form] = Form.useForm();
 
     if (!offerData) return null;
 
-    // Fetch contract balance
+    // Fetch contract balance and applications
     useEffect(() => {
-        const fetchBalance = async () => {
+        const fetchData = async () => {
             if (signer && offerData.contractAddress) {
                 try {
                     const balance = await getContractBalance(signer, offerData.contractAddress);
                     setContractBalance(balance);
+                    
+                    setLoadingApps(true);
+                    const apps = await getOfferApplications(signer, offerData.contractAddress);
+                    setApplications(apps);
+                    setLoadingApps(false);
                 } catch (error) {
-                    console.error('Error fetching contract balance:', error);
+                    console.error('Error fetching data:', error);
+                    setLoadingApps(false);
                 }
             }
         };
         
-        fetchBalance();
-    }, [signer, offerData.contractAddress, offerData.isFunded]);
+        fetchData();
+    }, [signer, offerData.contractAddress, offerData.isFunded, offerData.isAccepted]);
+
+    const handleApproveRequest = async () => {
+        if (!signer) {
+            message.error('Please connect your wallet');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            await approveRequest(signer, offerData.contractAddress);
+            message.success('Request approved! You can now begin the work.');
+            if (onUpdate) onUpdate();
+            // Refresh client request data
+            const request = getClientRequest(offerData.contractAddress);
+            setClientRequest(request);
+        } catch (error) {
+            console.error('Error approving request:', error);
+            message.error(`Failed to approve request: ${error.message}`);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleRejectRequest = async () => {
+        if (!signer) {
+            message.error('Please connect your wallet');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            await rejectRequest(signer, offerData.contractAddress);
+            message.success('Request rejected and payment returned to client.');
+            if (onUpdate) onUpdate();
+            // Refresh balance and client request data
+            const balance = await getContractBalance(signer, offerData.contractAddress);
+            setContractBalance(balance);
+            const request = getClientRequest(offerData.contractAddress);
+            setClientRequest(request);
+        } catch (error) {
+            console.error('Error rejecting request:', error);
+            message.error(`Failed to reject request: ${error.message}`);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleCompleteOffer = async () => {
         if (!signer) {
@@ -115,13 +169,17 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
     // Helper function to get status info
     const getStatusInfo = () => {
         if (!offerData.isAccepted) {
-            return { text: 'Waiting for client acceptance', color: 'orange' };
-        } else if (!offerData.isFunded) {
-            return { text: 'Accepted - Waiting for payment', color: 'blue' };
-        } else if (!offerData.isCompleted) {
-            return { text: 'Funded - Ready to complete', color: 'green' };
+            return { text: 'Waiting for client requests', color: 'orange' };
+        } else if (clientRequest?.status === 'pending_approval') {
+            return { text: 'Client request pending your approval', color: 'blue' };
+        } else if (clientRequest?.status === 'rejected') {
+            return { text: 'Request rejected - funds returned', color: 'red' };
+        } else if (clientRequest?.status === 'approved' && !offerData.isCompleted) {
+            return { text: 'Request approved - complete the work', color: 'green' };
+        } else if (offerData.isCompleted) {
+            return { text: 'Work completed - ready to withdraw', color: 'purple' };
         } else {
-            return { text: 'Completed - Ready to withdraw', color: 'purple' };
+            return { text: 'In progress', color: 'green' };
         }
     };
 
@@ -139,38 +197,87 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
                 style={{ position: 'sticky', top: '24px' }}
             >
                 <Space direction="vertical" style={{ width: '100%' }} size="large">
-                    {/* Contract Balance */}
+                    {/* Contract Status */}
                     <div style={{ textAlign: 'center' }}>
                         <Title level={3} style={{ color: '#ec348b', margin: 0 }}>
-                            Contract Balance
+                            Offer Status
                         </Title>
                         <Paragraph type="secondary">
-                            Available funds in the contract
+                            Current state of your offer
                         </Paragraph>
-                        {/* TODO: Fetch and display actual contract balance */}
+                        <Text strong style={{ fontSize: '16px', color: statusInfo.color }}>
+                            {statusInfo.text}
+                        </Text>
+                    </div>
+
+                    {/* Contract Balance */}
+                    <div style={{ textAlign: 'center' }}>
+                        <Title level={4} style={{ margin: 0 }}>
+                            Contract Balance
+                        </Title>
                         <Text strong style={{ fontSize: '18px' }}>
-                            Loading... PYUSD
+                            {contractBalance} PYUSD
                         </Text>
                     </div>
 
                     <Divider />
 
+                    {/* Client Information */}
+                    {clientRequest && (
+                        <>
+                            <div style={{ textAlign: 'center' }}>
+                                <Title level={4} style={{ margin: 0 }}>
+                                    Client Information
+                                </Title>
+                                <div style={{ 
+                                    padding: '12px', 
+                                    backgroundColor: '#f6f6f6', 
+                                    borderRadius: '6px', 
+                                    marginTop: '8px',
+                                    textAlign: 'left'
+                                }}>
+                                    <Text strong>Name:</Text> {clientRequest.contactInfo?.name || 'Not provided'}<br />
+                                    <Text strong>Email:</Text> {clientRequest.contactInfo?.email || 'Not provided'}<br />
+                                    {clientRequest.contactInfo?.phone && (
+                                        <>
+                                            <Text strong>Phone:</Text> {clientRequest.contactInfo.phone}<br />
+                                        </>
+                                    )}
+                                    <Text strong>Wallet:</Text> {clientRequest.clientAddress}<br />
+                                    <Text strong>Accepted:</Text> {new Date(clientRequest.acceptedAt).toLocaleDateString()}<br />
+                                    {clientRequest.contactInfo?.message && (
+                                        <>
+                                            <Text strong>Message:</Text><br />
+                                            <Text type="secondary">{clientRequest.contactInfo.message}</Text>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                            <Divider />
+                        </>
+                    )}
+
                     {/* Quick Stats */}
                     <Row gutter={16}>
-                        <Col span={12}>
+                        <Col span={8}>
                             <Statistic
-                                title="Views"
-                                value={0} // TODO: Implement view tracking
-                                suffix="total"
-                                valueStyle={{ fontSize: '16px' }}
+                                title="Accepted"
+                                value={offerData.isAccepted ? 'Yes' : 'No'}
+                                valueStyle={{ fontSize: '14px', color: offerData.isAccepted ? 'green' : 'orange' }}
                             />
                         </Col>
-                        <Col span={12}>
+                        <Col span={8}>
                             <Statistic
-                                title="Responses"
-                                value={offerData.claimCount}
-                                suffix="claims"
-                                valueStyle={{ fontSize: '16px' }}
+                                title="Funded"
+                                value={offerData.isFunded ? 'Yes' : 'No'}
+                                valueStyle={{ fontSize: '14px', color: offerData.isFunded ? 'green' : 'orange' }}
+                            />
+                        </Col>
+                        <Col span={8}>
+                            <Statistic
+                                title="Completed"
+                                value={offerData.isCompleted ? 'Yes' : 'No'}
+                                valueStyle={{ fontSize: '14px', color: offerData.isCompleted ? 'green' : 'orange' }}
                             />
                         </Col>
                     </Row>
@@ -189,125 +296,107 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
                             Share Offer Link
                         </Button>
 
-                        <Button 
-                            size="large" 
-                            block
-                            icon={<WalletOutlined />}
-                            onClick={() => setFundModalVisible(true)}
-                        >
-                            Fund Contract
-                        </Button>
+                        {/* Approve/Reject Buttons for Pending Requests */}
+                        {clientRequest?.status === 'pending_approval' && (
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <Button 
+                                    type="primary"
+                                    size="large" 
+                                    style={{ 
+                                        flex: 1, 
+                                        backgroundColor: '#52c41a', 
+                                        borderColor: '#52c41a' 
+                                    }}
+                                    onClick={handleApproveRequest}
+                                    loading={loading}
+                                    icon={<CheckCircleOutlined />}
+                                >
+                                    Approve Request
+                                </Button>
+                                <Button 
+                                    danger
+                                    size="large" 
+                                    style={{ flex: 1 }}
+                                    onClick={handleRejectRequest}
+                                    loading={loading}
+                                    icon={<PauseCircleOutlined />}
+                                >
+                                    Reject & Refund
+                                </Button>
+                            </div>
+                        )}
 
-                        <Button 
-                            size="large" 
-                            block
-                            icon={<DollarOutlined />}
-                            onClick={() => setWithdrawModalVisible(true)}
-                        >
-                            Withdraw Funds
-                        </Button>
-
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Text>Contract Status:</Text>
-                            <Switch
-                                checked={offerData.isActive}
-                                onChange={handleToggleStatus}
-                                checkedChildren={<PlayCircleOutlined />}
-                                unCheckedChildren={<PauseCircleOutlined />}
+                        {/* Complete Work Button */}
+                        {clientRequest?.status === 'approved' && !offerData.isCompleted && (
+                            <Button 
+                                type="primary"
+                                size="large" 
+                                block
+                                icon={<DollarOutlined />}
+                                onClick={handleCompleteOffer}
                                 loading={loading}
-                            />
-                        </div>
+                                style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
+                            >
+                                Mark as Completed
+                            </Button>
+                        )}
+
+                        {offerData.isCompleted && parseFloat(contractBalance) > 0 && (
+                            <Button 
+                                size="large" 
+                                block
+                                icon={<WalletOutlined />}
+                                onClick={handleWithdrawFunds}
+                                loading={loading}
+                                style={{ backgroundColor: '#722ed1', borderColor: '#722ed1', color: 'white' }}
+                            >
+                                Withdraw Funds ({contractBalance} PYUSD)
+                            </Button>
+                        )}
+
+                        {!offerData.isAccepted && (
+                            <div style={{ padding: '16px', backgroundColor: '#f6f6f6', borderRadius: '6px', textAlign: 'center' }}>
+                                <Text type="secondary">
+                                    Waiting for client requests. Share the link to get started!
+                                </Text>
+                            </div>
+                        )}
+
+                        {clientRequest?.status === 'pending_approval' && (
+                            <div style={{ padding: '16px', backgroundColor: '#e6f7ff', borderRadius: '6px', textAlign: 'center' }}>
+                                <Text style={{ color: '#1890ff' }}>
+                                    📧 New request from {clientRequest.contactInfo?.name || 'a client'}! 
+                                    Review their information above and approve or reject.
+                                </Text>
+                            </div>
+                        )}
+
+                        {clientRequest?.status === 'approved' && !offerData.isCompleted && (
+                            <div style={{ padding: '16px', backgroundColor: '#f6ffed', borderRadius: '6px', textAlign: 'center' }}>
+                                <Text style={{ color: '#52c41a' }}>
+                                    ✅ Request approved! Complete the work and mark as finished to withdraw payment.
+                                </Text>
+                            </div>
+                        )}
+
+                        {clientRequest?.status === 'rejected' && (
+                            <div style={{ padding: '16px', backgroundColor: '#fff2f0', borderRadius: '6px', textAlign: 'center' }}>
+                                <Text style={{ color: '#ff4d4f' }}>
+                                    ❌ Request was rejected and payment returned to client.
+                                </Text>
+                            </div>
+                        )}
                     </Space>
 
                     <Divider />
 
                     <div style={{ textAlign: 'center' }}>
                         <Text type="secondary" style={{ fontSize: '12px' }}>
-                            You are the owner of this contract. You can manage settings, fund the contract, and withdraw funds.
+                            Simplified workflow: Client pays upfront → You approve/reject → Complete work → Withdraw funds
                         </Text>
                     </div>
                 </Space>
             </Card>
-
-            {/* Fund Contract Modal */}
-            <Modal
-                title="Fund Contract"
-                open={fundModalVisible}
-                onCancel={() => setFundModalVisible(false)}
-                footer={null}
-            >
-                <Form
-                    form={form}
-                    onFinish={handleFundContract}
-                    layout="vertical"
-                >
-                    <Form.Item
-                        name="amount"
-                        label="Amount (PYUSD)"
-                        rules={[
-                            { required: true, message: 'Please enter an amount' },
-                            { type: 'number', min: 0.01, message: 'Amount must be greater than 0.01' }
-                        ]}
-                    >
-                        <InputNumber
-                            style={{ width: '100%' }}
-                            placeholder="Enter amount to fund"
-                            precision={2}
-                            min={0.01}
-                        />
-                    </Form.Item>
-                    <Form.Item>
-                        <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
-                            <Button onClick={() => setFundModalVisible(false)}>
-                                Cancel
-                            </Button>
-                            <Button type="primary" htmlType="submit" loading={loading}>
-                                Fund Contract
-                            </Button>
-                        </Space>
-                    </Form.Item>
-                </Form>
-            </Modal>
-
-            {/* Withdraw Funds Modal */}
-            <Modal
-                title="Withdraw Funds"
-                open={withdrawModalVisible}
-                onCancel={() => setWithdrawModalVisible(false)}
-                footer={null}
-            >
-                <Form
-                    form={form}
-                    onFinish={handleWithdrawFunds}
-                    layout="vertical"
-                >
-                    <Form.Item
-                        name="amount"
-                        label="Amount (PYUSD)"
-                        rules={[
-                            { required: true, message: 'Please enter an amount' },
-                            { type: 'number', min: 0.01, message: 'Amount must be greater than 0.01' }
-                        ]}
-                    >
-                        <InputNumber
-                            style={{ width: '100%' }}
-                            placeholder="Enter amount to withdraw"
-                            precision={2}
-                            min={0.01}
-                        />
-                    </Form.Item>
-                    <Form.Item>
-                        <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
-                            <Button onClick={() => setWithdrawModalVisible(false)}>
-                                Cancel
-                            </Button>
-                            <Button type="primary" htmlType="submit" loading={loading}>
-                                Withdraw Funds
-                            </Button>
-                        </Space>
-                    </Form.Item>
-                </Form>
-            </Modal>
         </>
     );
 }
