@@ -6,12 +6,13 @@
   "scripts": {
     "build": "npx hardhat compile",
     "apply": "yarn build && node update-metadata.js",
+    "clean": "npx hardhat clean",
     "test": "npx hardhat test",
     "test:node": "npx hardhat test nodejs",
     "test:solidity": "npx hardhat test solidity",
-  "deploy:simpleoffer": "npx hardhat ignition deploy ignition/modules/SimpleOffer.ts",
-  "deploy:simpleoffer:local": "npx hardhat ignition deploy ignition/modules/SimpleOffer.ts --network localhost",
-  "deploy:apollo:local": "npx hardhat ignition deploy ignition/modules/Apollo.ts --network localhost"
+    "deploy:simpleoffer": "npx hardhat ignition deploy ignition/modules/SimpleOffer.ts",
+    "deploy:simpleoffer:local": "npx hardhat ignition deploy ignition/modules/SimpleOffer.ts --network localhost",
+    "deploy:apollo:local": "npx hardhat ignition deploy ignition/modules/Apollo.ts --network localhost"
   },
   "dependencies": {
     "@nomicfoundation/hardhat-ignition-viem": "^3.0.0",

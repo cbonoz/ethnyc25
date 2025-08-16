@@ -89,10 +89,10 @@ Note this project is a hackathon prototype and would require additional work to 
 ## Potential Future Work
 - **Recurring subscriptions or retainers:** Automate recurring service payments using PYUSD smart contracts  
 - **Cross-chain support:** Use LayerZero or Hyperlane to allow payments or contracts across multiple chains  
-- **Document attachment verification:** Integrate decentralized storage (Walrus or IPFS) for attachments, photos, or contracts  
 - **AI-driven pricing suggestions:** Nora could analyze past submissions to recommend optimized offer pricing  
 - **Reputation & review system:** Track completed offers and release ratings as verifiable on-chain badges  
 - **Integration with fiat on-ramps:** Via Dynamic’s Coinbase integration for clients who want to pay with fiat
+- **Configurable Themes** SimpleOffer currently has a single gradient theme. Future work would enable the user to configure whatever checkout background or color palette they would want.
 
 
 ### How it's built
