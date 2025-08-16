@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 import { ACTIVE_CHAIN } from '../constants';
 
@@ -8,10 +8,14 @@ export const useNetworkSwitcher = () => {
   const { primaryWallet } = useDynamicContext();
   const [isCorrectNetwork, setIsCorrectNetwork] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
+  const [hasChecked, setHasChecked] = useState(false);
+  const checkTimeoutRef = useRef(null);
 
-  const checkNetwork = async () => {
+  const checkNetwork = useCallback(async () => {
     if (!primaryWallet) {
       console.log('No primary wallet connected');
+      setIsCorrectNetwork(false);
+      setHasChecked(true);
       return false;
     }
     
@@ -36,6 +40,8 @@ export const useNetworkSwitcher = () => {
         currentChainId = network.id;
       } else {
         console.error('Unable to determine chain ID from network object:', network);
+        setIsCorrectNetwork(false);
+        setHasChecked(true);
         return false;
       }
       
@@ -44,15 +50,21 @@ export const useNetworkSwitcher = () => {
       const isCorrect = currentChainId === ACTIVE_CHAIN.id;
       console.log('Network is correct:', isCorrect);
       
-      setIsCorrectNetwork(isCorrect);
+      // Only update state if the value actually changed to prevent unnecessary re-renders
+      setIsCorrectNetwork(prev => prev !== isCorrect ? isCorrect : prev);
+      setHasChecked(true);
       return isCorrect;
     } catch (error) {
       console.error('Error checking network:', error);
+      setIsCorrectNetwork(false);
+      setHasChecked(true);
+      setIsCorrectNetwork(false);
+      setHasChecked(true);
       return false;
     }
-  };
+  }, [primaryWallet]); // Add primaryWallet as dependency
 
-  const switchToRequiredNetwork = async () => {
+  const switchToRequiredNetwork = useCallback(async () => {
     if (!primaryWallet) {
       throw new Error('No wallet connected');
     }
@@ -97,9 +109,9 @@ export const useNetworkSwitcher = () => {
     } finally {
       setIsChecking(false);
     }
-  };
+  }, [primaryWallet, checkNetwork]);
 
-  const ensureCorrectNetwork = async () => {
+  const ensureCorrectNetwork = useCallback(async () => {
     const isCorrect = await checkNetwork();
     if (!isCorrect) {
       console.log('Network is incorrect, attempting to switch...');
@@ -116,13 +128,31 @@ export const useNetworkSwitcher = () => {
       }
     }
     return isCorrectNetwork;
-  };
+  }, [checkNetwork, switchToRequiredNetwork, isCorrectNetwork]);
 
+  // Only check network when wallet changes and we haven't checked yet
   useEffect(() => {
-    if (primaryWallet) {
+    if (primaryWallet && !hasChecked) {
       checkNetwork();
     }
+  }, [primaryWallet, hasChecked, checkNetwork]);
+
+  // Reset hasChecked when wallet changes
+  useEffect(() => {
+    if (!primaryWallet) {
+      setHasChecked(false);
+      setIsCorrectNetwork(false);
+    }
   }, [primaryWallet]);
+
+  // Cleanup function
+  useEffect(() => {
+    return () => {
+      if (checkTimeoutRef.current) {
+        clearTimeout(checkTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return {
     isCorrectNetwork,

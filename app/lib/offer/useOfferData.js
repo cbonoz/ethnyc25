@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useEthersSigner } from '../../hooks/useEthersSigner';
 import { getMetadata } from '../../util/appContract';
 
@@ -10,24 +10,11 @@ export default function useOfferData(offerId) {
     const [error, setError] = useState(null);
     const [offerData, setOfferData] = useState(null);
     const [userAddress, setUserAddress] = useState(null);
-
-    useEffect(() => {
-        const getUserAddress = async () => {
-            if (signer) {
-                try {
-                    const address = await signer.getAddress();
-                    setUserAddress(address);
-                } catch (error) {
-                    console.error('Error getting user address:', error);
-                }
-            }
-        };
-
-        getUserAddress();
-    }, [signer]);
+    const hasLoadedRef = useRef(false);
 
     const fetchOfferData = async () => {
         if (!signer || !offerId) {
+            setLoading(false);
             return;
         }
 
@@ -57,6 +44,15 @@ export default function useOfferData(offerId) {
             };
             
             setOfferData(data);
+            hasLoadedRef.current = true;
+            
+            // Get user address
+            try {
+                const address = await signer.getAddress();
+                setUserAddress(address);
+            } catch (err) {
+                console.error('Error getting user address:', err);
+            }
             
         } catch (error) {
             console.error('Error fetching offer data:', error);
@@ -67,8 +63,16 @@ export default function useOfferData(offerId) {
     };
 
     useEffect(() => {
-        fetchOfferData();
+        if (!hasLoadedRef.current) {
+            fetchOfferData();
+        }
     }, [signer, offerId]);
+
+    // Manual refetch function
+    const refetch = async () => {
+        hasLoadedRef.current = false;
+        await fetchOfferData();
+    };
 
     const isOwner = userAddress && offerData && 
         userAddress.toLowerCase() === offerData.owner.toLowerCase();
@@ -79,6 +83,6 @@ export default function useOfferData(offerId) {
         offerData,
         userAddress,
         isOwner,
-        refetch: fetchOfferData
+        refetch
     };
 }

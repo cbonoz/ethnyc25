@@ -18,7 +18,7 @@ import {
     WalletOutlined,
     MessageOutlined
 } from '@ant-design/icons';
-import { applyForOffer, acceptAndFundOffer, getOfferApplications } from '../../util/appContract';
+import { requestOffer, acceptOffer, fundContract } from '../../util/appContract';
 import { useEthersSigner } from '../../hooks/useEthersSigner';
 
 const { Title, Text, Paragraph } = Typography;
@@ -65,7 +65,7 @@ export default function ClientActionsCard({ offerData, onUpdate }) {
         setModalVisible(true);
     };
 
-    const handleSubmitApplication = async (values) => {
+    const handleSubmitRequest = async (values) => {
         if (!signer) {
             message.error('Please connect your wallet first');
             return;
@@ -73,15 +73,15 @@ export default function ClientActionsCard({ offerData, onUpdate }) {
 
         try {
             setLoading(true);
-            await applyForOffer(signer, offerData.contractAddress, values.message);
-            message.success('Application submitted! The owner will review your request.');
+            await requestOffer(signer, offerData.contractAddress, values.message);
+            message.success('Offer request submitted! The owner will review your request.');
             setModalVisible(false);
             setHasApplied(true);
             form.resetFields();
             if (onUpdate) onUpdate();
         } catch (error) {
-            console.error('Error submitting application:', error);
-            message.error(`Failed to submit application: ${error.message}`);
+            console.error('Error submitting request:', error);
+            message.error(`Failed to submit request: ${error.message}`);
         } finally {
             setLoading(false);
         }
@@ -137,7 +137,7 @@ export default function ClientActionsCard({ offerData, onUpdate }) {
                         <Title level={3} style={{ color: '#ec348b', margin: 0 }}>
                             ${offerData.amount} PYUSD
                         </Title>
-                        <Text type="secondary">Total offer amount</Text>
+                        <Text type="secondary">Price</Text>
                     </div>
 
                     {/* Application Status */}
@@ -168,7 +168,7 @@ export default function ClientActionsCard({ offerData, onUpdate }) {
                             disabled={!offerData.isActive}
                             icon={<MessageOutlined />}
                         >
-                            {offerData.isActive ? 'Apply for This Offer' : 'Offer Inactive'}
+                            {offerData.isActive ? 'Request This Offer' : 'Offer Inactive'}
                         </Button>
                     )}
 
@@ -229,9 +229,9 @@ export default function ClientActionsCard({ offerData, onUpdate }) {
                 </Space>
             </Card>
 
-            {/* Apply Modal - Simplified to just message */}
+            {/* Request Modal - Simplified to just message */}
             <Modal
-                title="Apply for This Offer"
+                title="Request This Offer"
                 open={modalVisible}
                 onCancel={() => setModalVisible(false)}
                 footer={null}
@@ -243,22 +243,22 @@ export default function ClientActionsCard({ offerData, onUpdate }) {
                         The owner will review your application and approve or reject it.
                     </Paragraph>
                     <Paragraph type="secondary">
-                        <strong>Important:</strong> Please include your contact details (name, email, phone) 
-                        in your message so the owner can reach you if your application is approved.
+                        <strong>Important:</strong> Please include your contact details (name, email, etc.) 
+                        in your message so the owner can reach you if necessary.
                     </Paragraph>
                 </div>
 
                 <Form
                     form={form}
-                    onFinish={handleSubmitApplication}
+                    onFinish={handleSubmitRequest}
                     layout="vertical"
                 >
                     <Form.Item
                         name="message"
-                        label="Application Message"
+                        label="Request Message"
                         rules={[
-                            { required: true, message: 'Please enter your application message' },
-                            { min: 20, message: 'Please provide more details (at least 20 characters)' }
+                            { required: true, message: 'Please enter your request message' },
+                            { min: 10, message: 'Please provide more details (at least 10 characters)' }
                         ]}
                     >
                         <Input.TextArea 

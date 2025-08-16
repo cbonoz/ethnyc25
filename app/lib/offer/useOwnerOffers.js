@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useEthersSigner } from '../../hooks/useEthersSigner';
 import { getMetadata } from '../../util/appContract';
 
@@ -25,7 +25,7 @@ export default function useOwnerOffers() {
         getUserAddress();
     }, [signer]);
 
-    const fetchOwnerOffers = async () => {
+    const fetchOwnerOffers = useCallback(async () => {
         if (!signer || !userAddress) {
             return;
         }
@@ -66,7 +66,7 @@ export default function useOwnerOffers() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [signer, userAddress]);
 
     const getOfferStatus = (metadata) => {
         if (!metadata.isActive) return 'inactive';
@@ -76,7 +76,7 @@ export default function useOwnerOffers() {
         return 'pending';
     };
 
-    const addOffer = (contractAddress, offerData) => {
+    const addOffer = useCallback((contractAddress, offerData) => {
         // Store new offer in localStorage
         const storedOffers = JSON.parse(localStorage.getItem('userOffers') || '[]');
         const newOffer = {
@@ -91,13 +91,13 @@ export default function useOwnerOffers() {
         
         // Refresh the offers list
         fetchOwnerOffers();
-    };
+    }, [userAddress, fetchOwnerOffers]);
 
     useEffect(() => {
         if (userAddress) {
             fetchOwnerOffers();
         }
-    }, [userAddress, signer]);
+    }, [fetchOwnerOffers, userAddress]);
 
     return {
         loading,

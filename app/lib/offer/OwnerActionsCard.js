@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
     Card, 
     Typography, 
@@ -8,26 +8,28 @@ import {
     Space, 
     Divider,
     message,
-    Switch,
     Statistic,
     Row,
-    Col,
-    Modal,
-    InputNumber,
-    Form
+    Col
 } from 'antd';
 import { 
-    EditOutlined,
     DollarOutlined,
-    PauseCircleOutlined,
-    PlayCircleOutlined,
     ShareAltOutlined,
     SettingOutlined,
-    WalletOutlined
+    WalletOutlined,
+    CheckCircleOutlined,
+    CloseCircleOutlined,
+    UserOutlined
 } from '@ant-design/icons';
-import { completeOffer, withdrawFunds, getContractBalance, getOfferApplications, approveApplication, rejectApplication } from '../../util/appContract';
+import { 
+    completeOffer, 
+    withdrawFunds, 
+    getContractBalance,
+    getOfferRequests,
+    approveOfferRequest,
+    rejectOfferRequest
+} from '../../util/appContract';
 import { useEthersSigner } from '../../hooks/useEthersSigner';
-import { useEffect } from 'react';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -35,35 +37,36 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
     const signer = useEthersSigner();
     const [loading, setLoading] = useState(false);
     const [contractBalance, setContractBalance] = useState('0');
-    const [applications, setApplications] = useState([]);
-    const [loadingApps, setLoadingApps] = useState(false);
-    const [form] = Form.useForm();
+    const [offerRequests, setOfferRequests] = useState([]);
+    const [loadingRequests, setLoadingRequests] = useState(false);
 
     if (!offerData) return null;
 
-    // Fetch contract balance and applications
+    // Fetch contract balance and offer requests
     useEffect(() => {
         const fetchData = async () => {
-            if (signer && offerData.contractAddress) {
+            if (signer && offerData?.contractAddress) {
                 try {
+                    // Fetch balance
                     const balance = await getContractBalance(signer, offerData.contractAddress);
                     setContractBalance(balance);
                     
-                    setLoadingApps(true);
-                    const apps = await getOfferApplications(signer, offerData.contractAddress);
-                    setApplications(apps);
-                    setLoadingApps(false);
+                    // Fetch offer requests
+                    setLoadingRequests(true);
+                    const requests = await getOfferRequests(signer, offerData.contractAddress);
+                    setOfferRequests(requests);
+                    setLoadingRequests(false);
                 } catch (error) {
                     console.error('Error fetching data:', error);
-                    setLoadingApps(false);
+                    setLoadingRequests(false);
                 }
             }
         };
-        
-        fetchData();
-    }, [signer, offerData.contractAddress, offerData.isFunded, offerData.isAccepted]);
 
-    const handleApproveRequest = async () => {
+        fetchData();
+    }, [signer, offerData?.contractAddress]);
+
+    const handleApproveRequest = async (clientAddress) => {
         if (!signer) {
             message.error('Please connect your wallet');
             return;
@@ -71,12 +74,13 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
 
         try {
             setLoading(true);
-            await approveRequest(signer, offerData.contractAddress);
-            message.success('Request approved! You can now begin the work.');
+            await approveOfferRequest(signer, offerData.contractAddress, clientAddress);
+            message.success('Offer request approved!');
             if (onUpdate) onUpdate();
-            // Refresh client request data
-            const request = getClientRequest(offerData.contractAddress);
-            setClientRequest(request);
+            
+            // Refresh requests
+            const requests = await getOfferRequests(signer, offerData.contractAddress);
+            setOfferRequests(requests);
         } catch (error) {
             console.error('Error approving request:', error);
             message.error(`Failed to approve request: ${error.message}`);
@@ -85,7 +89,7 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
         }
     };
 
-    const handleRejectRequest = async () => {
+    const handleRejectRequest = async (clientAddress) => {
         if (!signer) {
             message.error('Please connect your wallet');
             return;
@@ -93,14 +97,13 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
 
         try {
             setLoading(true);
-            await rejectRequest(signer, offerData.contractAddress);
-            message.success('Request rejected and payment returned to client.');
+            await rejectOfferRequest(signer, offerData.contractAddress, clientAddress);
+            message.success('Offer request rejected');
             if (onUpdate) onUpdate();
-            // Refresh balance and client request data
-            const balance = await getContractBalance(signer, offerData.contractAddress);
-            setContractBalance(balance);
-            const request = getClientRequest(offerData.contractAddress);
-            setClientRequest(request);
+            
+            // Refresh requests
+            const requests = await getOfferRequests(signer, offerData.contractAddress);
+            setOfferRequests(requests);
         } catch (error) {
             console.error('Error rejecting request:', error);
             message.error(`Failed to reject request: ${error.message}`);
@@ -155,11 +158,6 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
         }
     };
 
-    const handleToggleStatus = async () => {
-        message.info('Toggle status functionality to be implemented');
-        // TODO: Implement toggle contract status
-    };
-
     const handleShareOffer = () => {
         const offerUrl = `${window.location.origin}/offer/${offerData.contractAddress}`;
         navigator.clipboard.writeText(offerUrl);
@@ -170,12 +168,10 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
     const getStatusInfo = () => {
         if (!offerData.isAccepted) {
             return { text: 'Waiting for client requests', color: 'orange' };
-        } else if (clientRequest?.status === 'pending_approval') {
-            return { text: 'Client request pending your approval', color: 'blue' };
-        } else if (clientRequest?.status === 'rejected') {
-            return { text: 'Request rejected - funds returned', color: 'red' };
-        } else if (clientRequest?.status === 'approved' && !offerData.isCompleted) {
-            return { text: 'Request approved - complete the work', color: 'green' };
+        } else if (offerData.isAccepted && !offerData.isFunded) {
+            return { text: 'Accepted - waiting for payment', color: 'blue' };
+        } else if (offerData.isFunded && !offerData.isCompleted) {
+            return { text: 'Funded - complete the work', color: 'green' };
         } else if (offerData.isCompleted) {
             return { text: 'Work completed - ready to withdraw', color: 'purple' };
         } else {
@@ -186,217 +182,252 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
     const statusInfo = getStatusInfo();
 
     return (
-        <>
-            <Card 
-                title={
-                    <Space>
-                        <SettingOutlined />
-                        Owner Dashboard
-                    </Space>
-                } 
-                style={{ position: 'sticky', top: '24px' }}
-            >
-                <Space direction="vertical" style={{ width: '100%' }} size="large">
-                    {/* Contract Status */}
-                    <div style={{ textAlign: 'center' }}>
-                        <Title level={3} style={{ color: '#ec348b', margin: 0 }}>
-                            Offer Status
-                        </Title>
-                        <Paragraph type="secondary">
-                            Current state of your offer
-                        </Paragraph>
-                        <Text strong style={{ fontSize: '16px', color: statusInfo.color }}>
-                            {statusInfo.text}
-                        </Text>
-                    </div>
+        <Card 
+            title={
+                <Space>
+                    <SettingOutlined />
+                    Owner Dashboard
+                </Space>
+            } 
+            style={{ position: 'sticky', top: '24px' }}
+        >
+            <Space direction="vertical" style={{ width: '100%' }} size="large">
+                {/* Contract Status */}
+                <div style={{ textAlign: 'center' }}>
+                    <Title level={3} style={{ color: '#ec348b', margin: 0 }}>
+                        Offer Status
+                    </Title>
+                    <Paragraph type="secondary">
+                        Current state of your offer
+                    </Paragraph>
+                    <Text strong style={{ fontSize: '16px', color: statusInfo.color }}>
+                        {statusInfo.text}
+                    </Text>
+                </div>
 
-                    {/* Contract Balance */}
-                    <div style={{ textAlign: 'center' }}>
-                        <Title level={4} style={{ margin: 0 }}>
-                            Contract Balance
-                        </Title>
-                        <Text strong style={{ fontSize: '18px' }}>
-                            {contractBalance} PYUSD
-                        </Text>
-                    </div>
+                {/* Contract Balance */}
+                <div style={{ textAlign: 'center' }}>
+                    <Title level={4} style={{ margin: 0 }}>
+                        Contract Balance
+                    </Title>
+                    <Text strong style={{ fontSize: '18px' }}>
+                        {contractBalance} PYUSD
+                    </Text>
+                </div>
 
-                    <Divider />
+                <Divider />
 
-                    {/* Client Information */}
-                    {clientRequest && (
-                        <>
-                            <div style={{ textAlign: 'center' }}>
-                                <Title level={4} style={{ margin: 0 }}>
-                                    Client Information
-                                </Title>
-                                <div style={{ 
-                                    padding: '12px', 
-                                    backgroundColor: '#f6f6f6', 
-                                    borderRadius: '6px', 
-                                    marginTop: '8px',
-                                    textAlign: 'left'
-                                }}>
-                                    <Text strong>Name:</Text> {clientRequest.contactInfo?.name || 'Not provided'}<br />
-                                    <Text strong>Email:</Text> {clientRequest.contactInfo?.email || 'Not provided'}<br />
-                                    {clientRequest.contactInfo?.phone && (
-                                        <>
-                                            <Text strong>Phone:</Text> {clientRequest.contactInfo.phone}<br />
-                                        </>
-                                    )}
-                                    <Text strong>Wallet:</Text> {clientRequest.clientAddress}<br />
-                                    <Text strong>Accepted:</Text> {new Date(clientRequest.acceptedAt).toLocaleDateString()}<br />
-                                    {clientRequest.contactInfo?.message && (
-                                        <>
-                                            <Text strong>Message:</Text><br />
-                                            <Text type="secondary">{clientRequest.contactInfo.message}</Text>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-                            <Divider />
-                        </>
+                {/* Offer Requests */}
+                <div>
+                    <Title level={4} style={{ margin: 0, marginBottom: '12px' }}>
+                        <UserOutlined style={{ marginRight: '8px' }} />
+                        Offer Requests ({offerRequests.length})
+                    </Title>
+                    
+                    {loadingRequests ? (
+                        <Text type="secondary">Loading requests...</Text>
+                    ) : offerRequests.length === 0 ? (
+                        <div style={{ 
+                            padding: '16px', 
+                            backgroundColor: '#f6f6f6', 
+                            borderRadius: '6px', 
+                            textAlign: 'center' 
+                        }}>
+                            <Text type="secondary">No requests yet</Text>
+                        </div>
+                    ) : (
+                        <Space direction="vertical" style={{ width: '100%' }} size="small">
+                            {offerRequests.map((request, index) => (
+                                <Card 
+                                    key={request.clientAddress} 
+                                    size="small" 
+                                    style={{ backgroundColor: '#fafafa' }}
+                                    title={
+                                        <Text strong>
+                                            Request #{index + 1}
+                                        </Text>
+                                    }
+                                    extra={
+                                        <Text type="secondary" style={{ fontSize: '12px' }}>
+                                            {new Date(request.requestedAt).toLocaleDateString()}
+                                        </Text>
+                                    }
+                                >
+                                    <Space direction="vertical" style={{ width: '100%' }} size="small">
+                                        <div>
+                                            <Text strong>Client: </Text>
+                                            <Text code style={{ fontSize: '11px' }}>
+                                                {request.clientAddress.slice(0, 8)}...{request.clientAddress.slice(-6)}
+                                            </Text>
+                                        </div>
+                                        
+                                        <div>
+                                            <Text strong>Message: </Text>
+                                            <Paragraph style={{ margin: 0, marginTop: '4px' }}>
+                                                {request.message}
+                                            </Paragraph>
+                                        </div>
+
+                                        {!request.isApproved && !request.isRejected && (
+                                            <div style={{ marginTop: '8px' }}>
+                                                <Space>
+                                                    <Button 
+                                                        type="primary"
+                                                        size="small"
+                                                        icon={<CheckCircleOutlined />}
+                                                        onClick={() => handleApproveRequest(request.clientAddress)}
+                                                        loading={loading}
+                                                        style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
+                                                    >
+                                                        Approve
+                                                    </Button>
+                                                    <Button 
+                                                        danger
+                                                        size="small"
+                                                        icon={<CloseCircleOutlined />}
+                                                        onClick={() => handleRejectRequest(request.clientAddress)}
+                                                        loading={loading}
+                                                    >
+                                                        Reject
+                                                    </Button>
+                                                </Space>
+                                            </div>
+                                        )}
+
+                                        {request.isApproved && (
+                                            <div style={{ 
+                                                padding: '6px 12px', 
+                                                backgroundColor: '#f6ffed', 
+                                                borderRadius: '4px', 
+                                                marginTop: '8px' 
+                                            }}>
+                                                <Text style={{ color: '#52c41a', fontSize: '12px' }}>
+                                                    ✅ Approved
+                                                </Text>
+                                            </div>
+                                        )}
+
+                                        {request.isRejected && (
+                                            <div style={{ 
+                                                padding: '6px 12px', 
+                                                backgroundColor: '#fff2f0', 
+                                                borderRadius: '4px', 
+                                                marginTop: '8px' 
+                                            }}>
+                                                <Text style={{ color: '#ff4d4f', fontSize: '12px' }}>
+                                                    ❌ Rejected
+                                                </Text>
+                                            </div>
+                                        )}
+                                    </Space>
+                                </Card>
+                            ))}
+                        </Space>
                     )}
+                </div>
 
-                    {/* Quick Stats */}
-                    <Row gutter={16}>
-                        <Col span={8}>
-                            <Statistic
-                                title="Accepted"
-                                value={offerData.isAccepted ? 'Yes' : 'No'}
-                                valueStyle={{ fontSize: '14px', color: offerData.isAccepted ? 'green' : 'orange' }}
-                            />
-                        </Col>
-                        <Col span={8}>
-                            <Statistic
-                                title="Funded"
-                                value={offerData.isFunded ? 'Yes' : 'No'}
-                                valueStyle={{ fontSize: '14px', color: offerData.isFunded ? 'green' : 'orange' }}
-                            />
-                        </Col>
-                        <Col span={8}>
-                            <Statistic
-                                title="Completed"
-                                value={offerData.isCompleted ? 'Yes' : 'No'}
-                                valueStyle={{ fontSize: '14px', color: offerData.isCompleted ? 'green' : 'orange' }}
-                            />
-                        </Col>
-                    </Row>
+                <Divider />
 
-                    <Divider />
+                {/* Quick Stats */}
+                <Row gutter={16}>
+                    <Col span={8}>
+                        <Statistic
+                            title="Accepted"
+                            value={offerData.isAccepted ? 'Yes' : 'No'}
+                            valueStyle={{ fontSize: '14px', color: offerData.isAccepted ? 'green' : 'orange' }}
+                        />
+                    </Col>
+                    <Col span={8}>
+                        <Statistic
+                            title="Funded"
+                            value={offerData.isFunded ? 'Yes' : 'No'}
+                            valueStyle={{ fontSize: '14px', color: offerData.isFunded ? 'green' : 'orange' }}
+                        />
+                    </Col>
+                    <Col span={8}>
+                        <Statistic
+                            title="Completed"
+                            value={offerData.isCompleted ? 'Yes' : 'No'}
+                            valueStyle={{ fontSize: '14px', color: offerData.isCompleted ? 'green' : 'orange' }}
+                        />
+                    </Col>
+                </Row>
 
-                    {/* Action Buttons */}
-                    <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                <Divider />
+
+                {/* Action Buttons */}
+                <Space direction="vertical" style={{ width: '100%' }} size="middle">
+                    <Button 
+                        type="primary" 
+                        size="large" 
+                        block
+                        icon={<ShareAltOutlined />}
+                        onClick={handleShareOffer}
+                    >
+                        Share Offer Link
+                    </Button>
+
+                    {/* Complete Work Button */}
+                    {offerData.isFunded && !offerData.isCompleted && (
                         <Button 
-                            type="primary" 
+                            type="primary"
                             size="large" 
                             block
-                            icon={<ShareAltOutlined />}
-                            onClick={handleShareOffer}
+                            icon={<DollarOutlined />}
+                            onClick={handleCompleteOffer}
+                            loading={loading}
+                            style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
                         >
-                            Share Offer Link
+                            Mark as Completed
                         </Button>
+                    )}
 
-                        {/* Approve/Reject Buttons for Pending Requests */}
-                        {clientRequest?.status === 'pending_approval' && (
-                            <div style={{ display: 'flex', gap: '8px' }}>
-                                <Button 
-                                    type="primary"
-                                    size="large" 
-                                    style={{ 
-                                        flex: 1, 
-                                        backgroundColor: '#52c41a', 
-                                        borderColor: '#52c41a' 
-                                    }}
-                                    onClick={handleApproveRequest}
-                                    loading={loading}
-                                    icon={<CheckCircleOutlined />}
-                                >
-                                    Approve Request
-                                </Button>
-                                <Button 
-                                    danger
-                                    size="large" 
-                                    style={{ flex: 1 }}
-                                    onClick={handleRejectRequest}
-                                    loading={loading}
-                                    icon={<PauseCircleOutlined />}
-                                >
-                                    Reject & Refund
-                                </Button>
-                            </div>
-                        )}
+                    {offerData.isCompleted && parseFloat(contractBalance) > 0 && (
+                        <Button 
+                            size="large" 
+                            block
+                            icon={<WalletOutlined />}
+                            onClick={handleWithdrawFunds}
+                            loading={loading}
+                            style={{ backgroundColor: '#722ed1', borderColor: '#722ed1', color: 'white' }}
+                        >
+                            Withdraw Funds ({contractBalance} PYUSD)
+                        </Button>
+                    )}
 
-                        {/* Complete Work Button */}
-                        {clientRequest?.status === 'approved' && !offerData.isCompleted && (
-                            <Button 
-                                type="primary"
-                                size="large" 
-                                block
-                                icon={<DollarOutlined />}
-                                onClick={handleCompleteOffer}
-                                loading={loading}
-                                style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
-                            >
-                                Mark as Completed
-                            </Button>
-                        )}
+                    {!offerData.isAccepted && (
+                        <div style={{ padding: '16px', backgroundColor: '#f6f6f6', borderRadius: '6px', textAlign: 'center' }}>
+                            <Text type="secondary">
+                                Waiting for client requests. Share the link to get started!
+                            </Text>
+                        </div>
+                    )}
 
-                        {offerData.isCompleted && parseFloat(contractBalance) > 0 && (
-                            <Button 
-                                size="large" 
-                                block
-                                icon={<WalletOutlined />}
-                                onClick={handleWithdrawFunds}
-                                loading={loading}
-                                style={{ backgroundColor: '#722ed1', borderColor: '#722ed1', color: 'white' }}
-                            >
-                                Withdraw Funds ({contractBalance} PYUSD)
-                            </Button>
-                        )}
+                    {offerData.isAccepted && !offerData.isFunded && (
+                        <div style={{ padding: '16px', backgroundColor: '#e6f7ff', borderRadius: '6px', textAlign: 'center' }}>
+                            <Text style={{ color: '#1890ff' }}>
+                                ✅ Offer accepted! Waiting for client payment.
+                            </Text>
+                        </div>
+                    )}
 
-                        {!offerData.isAccepted && (
-                            <div style={{ padding: '16px', backgroundColor: '#f6f6f6', borderRadius: '6px', textAlign: 'center' }}>
-                                <Text type="secondary">
-                                    Waiting for client requests. Share the link to get started!
-                                </Text>
-                            </div>
-                        )}
-
-                        {clientRequest?.status === 'pending_approval' && (
-                            <div style={{ padding: '16px', backgroundColor: '#e6f7ff', borderRadius: '6px', textAlign: 'center' }}>
-                                <Text style={{ color: '#1890ff' }}>
-                                    📧 New request from {clientRequest.contactInfo?.name || 'a client'}! 
-                                    Review their information above and approve or reject.
-                                </Text>
-                            </div>
-                        )}
-
-                        {clientRequest?.status === 'approved' && !offerData.isCompleted && (
-                            <div style={{ padding: '16px', backgroundColor: '#f6ffed', borderRadius: '6px', textAlign: 'center' }}>
-                                <Text style={{ color: '#52c41a' }}>
-                                    ✅ Request approved! Complete the work and mark as finished to withdraw payment.
-                                </Text>
-                            </div>
-                        )}
-
-                        {clientRequest?.status === 'rejected' && (
-                            <div style={{ padding: '16px', backgroundColor: '#fff2f0', borderRadius: '6px', textAlign: 'center' }}>
-                                <Text style={{ color: '#ff4d4f' }}>
-                                    ❌ Request was rejected and payment returned to client.
-                                </Text>
-                            </div>
-                        )}
-                    </Space>
-
-                    <Divider />
-
-                    <div style={{ textAlign: 'center' }}>
-                        <Text type="secondary" style={{ fontSize: '12px' }}>
-                            Simplified workflow: Client pays upfront → You approve/reject → Complete work → Withdraw funds
-                        </Text>
-                    </div>
+                    {offerData.isFunded && !offerData.isCompleted && (
+                        <div style={{ padding: '16px', backgroundColor: '#f6ffed', borderRadius: '6px', textAlign: 'center' }}>
+                            <Text style={{ color: '#52c41a' }}>
+                                💰 Payment received! Complete the work and mark as finished to withdraw payment.
+                            </Text>
+                        </div>
+                    )}
                 </Space>
-            </Card>
-        </>
+
+                <Divider />
+
+                <div style={{ textAlign: 'center' }}>
+                    <Text type="secondary" style={{ fontSize: '12px' }}>
+                        Simplified workflow: Client requests → You approve → Client pays → Complete work → Withdraw funds
+                    </Text>
+                </div>
+            </Space>
+        </Card>
     );
 }

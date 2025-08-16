@@ -57,13 +57,6 @@ export default function OfferDetailsCard({ offerData }) {
                     />
                 </Col>
                 <Col xs={12} sm={6}>
-                    <Statistic
-                        title="Employees"
-                        value={offerData.employeeCount}
-                        prefix={<UserOutlined />}
-                    />
-                </Col>
-                <Col xs={12} sm={6}>
                     <div>
                         <Text type="secondary" style={{ fontSize: '12px' }}>Created</Text>
                         <div style={{ fontSize: '16px', fontWeight: 'bold' }}>

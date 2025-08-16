@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation';
 import { colors } from './theme/colors';
 
 const CHECKLIST_ITEMS = [
-	'One-click form collection and payments for any business',
+	'One-click form collection and payments for anyone',
 	'Smart contracts built with Hardhat for transparent automation',
 	'Decentralized, trustless payments using PYUSD stablecoin',
 	'Wallet-based authentication via Dynamic - no accounts needed'
@@ -537,7 +537,7 @@ const Home = () => {
 								color: 'white'
 							}}
 						>
-							Ready to Transform Your Business?
+							Ready to Transform Your Service?
 						</h2>
 						<p
 							style={{

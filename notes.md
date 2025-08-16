@@ -36,7 +36,7 @@ Existing solutions partially address these problems, but often have limitations 
 
 - **Dynamic** → wallet-based authentication for both clients and service providers.
 - **Hardhat** → smart contracts to record form submissions, offers, and payments on-chain  .
-- **PYUSD** → Businesses offer don't want volatile payment. stablecoin payments for deposits, milestone completion, or offers enable businesses to accept the payments at a fixed price without the banking fees.
+- **PYUSD** → Businesses offer don't want volatile payment. stablecoin payments for deposits, milestone completion, or offers enable anyone to accept the payments at a fixed price without the banking fees.
 <!-- - **Nora** → AI-assisted contract generation for offers or estimates, and automated verification logic  
 - **ENS** → readable profiles for service providers and clients   -->
 

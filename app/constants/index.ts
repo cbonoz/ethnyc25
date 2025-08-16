@@ -2,9 +2,9 @@
 import { sepolia, mainnet } from 'viem/chains';
 
 export const siteConfig = {
-    title: 'SimpleOffer | One-click On-chain Form + Payment',
+    title: 'SimpleOffer | One-click On-chain Form and Payments',
     name: 'SimpleOffer',
-    description: 'One-click, decentralized form + payment system for any business. Collect structured client info, generate offers, and manage payments—all on-chain, with wallet-based authentication and AI-assisted contract logic.',
+    description: 'One-click, decentralized payment system for anyone. Collect client info, generate offers, and manage payments—all on-chain, with wallet-based authentication',
     cta: {
         primary: 'Create Offer Link',
         secondary: 'Learn More'

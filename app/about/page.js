@@ -20,7 +20,7 @@ export default function About() {
         {
             icon: <DollarOutlined style={{ fontSize: '24px', color: '#52c41a' }} />,
             title: 'Stablecoin Payments (PYUSD)',
-            description: 'Businesses can accept stablecoin payments for deposits, milestones, or offers—no volatility, no banking fees.'
+            description: 'Accept stablecoin payments for deposits, milestones, or offers—no volatility, no banking fees.'
         },
         {
             icon: <CheckCircleTwoTone twoToneColor="#ec348b" style={{ fontSize: '24px' }} />,
@@ -34,9 +34,9 @@ export default function About() {
         }
     ];    const useCases = [
         'Freelancers and service providers collecting offers or deposits',
-        'Small businesses automating client onboarding and payment',
+        'Anyone looking to simplify client onboarding and payment',
         'Agencies or consultants issuing milestone-based contracts',
-        'Any business needing trustless, on-chain form + payment flows',
+        'Anyone needing trustless, on-chain form + payment flows',
         'Teams wanting transparent, automated approval and payout logic'
     ];
 
@@ -49,7 +49,7 @@ export default function About() {
                     About {APP_NAME}
                 </Title>
                 <Paragraph style={{ fontSize: '20px', color: '#666', maxWidth: '700px', margin: '0 auto 32px' }}>
-                    <b>SimpleOffer</b> is a one-click, decentralized form + payment system for any business. Collect structured client info, generate offers, and manage payments—all on-chain, with wallet-based authentication and smart contract automation.
+                    <b>SimpleOffer</b> is a one-click, decentralized form + payment system for any business or service provider. Collect structured client info, generate offers, and manage payments—all on-chain, with wallet-based authentication and smart contract automation.
                 </Paragraph>
                 
                 {/* Hackathon Notice */}

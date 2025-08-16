@@ -146,77 +146,80 @@ export const getContractBalance = async (signer, contractAddress) => {
     }
 };
 
-// Apply for offer with message (simplified flow)
-export const applyForOffer = async (signer, contractAddress, message) => {
+// Request offer with message (simplified flow)
+export const requestOffer = async (signer, contractAddress, message) => {
     try {
         const contract = new ethers.Contract(contractAddress, SIMPLEOFFER_CONTRACT.abi, signer);
         
-        // Apply for the offer with just a message
-        const applyTx = await contract.applyForOffer(message);
-        await applyTx.wait();
+        // Request the offer with just a message
+        const requestTx = await contract.requestOffer(message);
+        await requestTx.wait();
         
-        console.log('Application submitted successfully');
-        return applyTx;
+        console.log('Offer request submitted successfully');
+        return requestTx;
     } catch (error) {
-        console.error('Error applying for offer:', error);
-        handleContractError(error, 'apply for offer');
+        console.error('Error requesting offer:', error);
+        handleContractError(error, 'request offer');
     }
 };
 
-// Get all applications for an offer (owner can see these)
-export const getOfferApplications = async (signer, contractAddress) => {
+// Backward compatibility alias
+export const applyForOffer = requestOffer;
+
+// Get all offer requests for an offer (owner can see these)
+export const getOfferRequests = async (signer, contractAddress) => {
     try {
         const contract = new ethers.Contract(contractAddress, SIMPLEOFFER_CONTRACT.abi, signer);
         
-        // Get all applicant addresses
-        const applicantAddresses = await contract.getApplicantAddresses();
+        // Get all requester addresses
+        const requesterAddresses = await contract.getRequesterAddresses();
         
-        // Get details for each application
-        const applications = await Promise.all(
-            applicantAddresses.map(async (address) => {
-                const application = await contract.getClientApplication(address);
+        // Get details for each request
+        const requests = await Promise.all(
+            requesterAddresses.map(async (address) => {
+                const request = await contract.getClientOfferRequest(address);
                 return {
-                    clientAddress: application.clientAddress,
-                    message: application.message,
-                    appliedAt: new Date(application.appliedAt.toNumber() * 1000).toISOString(),
-                    isApproved: application.isApproved,
-                    isRejected: application.isRejected
+                    clientAddress: request.clientAddress,
+                    message: request.message,
+                    requestedAt: new Date(request.requestedAt.toNumber() * 1000).toISOString(),
+                    isApproved: request.isApproved,
+                    isRejected: request.isRejected
                 };
             })
         );
         
-        return applications;
+        return requests;
     } catch (error) {
-        console.error('Error getting applications:', error);
+        console.error('Error getting offer requests:', error);
         return [];
     }
 };
 
-// Approve application (owner only)
-export const approveApplication = async (signer, contractAddress, clientAddress) => {
+// Approve offer request (owner only)
+export const approveOfferRequest = async (signer, contractAddress, clientAddress) => {
     try {
         const contract = new ethers.Contract(contractAddress, SIMPLEOFFER_CONTRACT.abi, signer);
         
-        const approveTx = await contract.approveApplication(clientAddress);
+        const approveTx = await contract.approveOfferRequest(clientAddress);
         await approveTx.wait();
         
-        console.log('Application approved successfully');
+        console.log('Offer request approved successfully');
         return approveTx;
     } catch (error) {
-        console.error('Error approving application:', error);
-        handleContractError(error, 'approve application');
+        console.error('Error approving offer request:', error);
+        handleContractError(error, 'approve offer request');
     }
 };
 
-// Reject application (owner only)
-export const rejectApplication = async (signer, contractAddress, clientAddress) => {
+// Reject offer request (owner only)
+export const rejectOfferRequest = async (signer, contractAddress, clientAddress) => {
     try {
         const contract = new ethers.Contract(contractAddress, SIMPLEOFFER_CONTRACT.abi, signer);
         
-        const rejectTx = await contract.rejectApplication(clientAddress);
+        const rejectTx = await contract.rejectOfferRequest(clientAddress);
         await rejectTx.wait();
         
-        console.log('Application rejected successfully');
+        console.log('Offer request rejected successfully');
         return rejectTx;
     } catch (error) {
         console.error('Error rejecting application:', error);
