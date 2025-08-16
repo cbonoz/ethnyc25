@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
     Button, 
     Card, 
@@ -15,16 +15,22 @@ import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 
 const { Title, Paragraph, Text } = Typography;
 
+
 export default function DeployStepContent({ 
     loading, 
     offerData, 
     onDeploy 
 }) {
     const { address: walletAddress } = useWalletAddress();
-    const { setShowDynamicUserProfile } = useDynamicContext();
+    const [showWalletError, setShowWalletError] = useState(false);
 
-    const handleConnectWallet = () => {
-        setShowDynamicUserProfile(true);
+    const handleDeploy = () => {
+        if (!walletAddress) {
+            setShowWalletError(true);
+            return;
+        }
+        setShowWalletError(false);
+        onDeploy();
     };
 
     if (loading) {
@@ -47,7 +53,6 @@ export default function DeployStepContent({
             <Paragraph type="secondary">
                 Review your offer details and deploy the smart contract.
             </Paragraph>
-            
             <Card style={{ textAlign: 'left', marginBottom: 24 }}>
                 <Title level={4}>{offerData.title}</Title>
                 <Text type="secondary">{offerData.category}</Text>
@@ -57,37 +62,24 @@ export default function DeployStepContent({
                 <br />
                 <Text strong>Payment Type: {offerData.paymentType}</Text>
             </Card>
-            
-            {/* Wallet Connection Check */}
-            {!walletAddress ? (
-                <div style={{ marginBottom: 24 }}>
-                    <Alert
-                        message="Wallet Required"
-                        description="You need to connect your wallet to deploy the smart contract. Please connect your wallet to continue."
-                        type="warning"
-                        showIcon
-                        style={{ marginBottom: 16 }}
-                    />
-                    <Button 
-                        type="primary" 
-                        size="large"
-                        icon={<WalletOutlined />}
-                        onClick={handleConnectWallet}
-                    >
-                        Connect Wallet
-                    </Button>
-                </div>
-            ) : (
-                <Button 
-                    type="primary" 
-                    size="large"
-                    icon={<PlusOutlined />}
-                    onClick={onDeploy}
-                    loading={loading}
-                >
-                    Deploy Offer Contract
-                </Button>
+            {showWalletError && (
+                <Alert
+                    message="Wallet Required"
+                    description="You need to connect your wallet to deploy the smart contract. Please connect your wallet to continue."
+                    type="error"
+                    showIcon
+                    style={{ marginBottom: 16 }}
+                />
             )}
+            <Button 
+                type="primary" 
+                size="large"
+                icon={<PlusOutlined />}
+                onClick={handleDeploy}
+                loading={loading}
+            >
+                Deploy Offer Contract
+            </Button>
         </div>
     );
 }

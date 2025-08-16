@@ -69,7 +69,7 @@ export default function About() {
                     </Space>
                     <Paragraph style={{ marginTop: '8px', marginBottom: 0, color: '#8c8c8c', fontSize: '14px' }}>
                         This application is a hackathon prototype built for demonstration purposes. 
-                        It is provided "as-is" without warranties.
+                        It is provided "as-is" without warranties. Only accept offers or submit payments to trusted recipients and businesses.
                     </Paragraph>
                 </Card>
 

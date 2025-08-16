@@ -12,7 +12,7 @@ import {
 } from 'antd';
 import { WalletOutlined } from '@ant-design/icons';
 import Logo from '../lib/Logo';
-import NetworkStatus from '../lib/NetworkStatus';
+// import NetworkStatus from '../lib/NetworkStatus';
 import { APP_NAME } from '../constants';
 import { useWalletAddress } from '../hooks/useWalletAddress';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
@@ -85,33 +85,9 @@ export default function CreateOffer() {
                         Set up a decentralized service offer with smart contract automation
                     </Paragraph>
                     
-                    {/* Wallet Connection Alert */}
-                    {!walletAddress && (
-                        <div style={{ marginTop: 24, maxWidth: '500px', margin: '24px auto 0' }}>
-                            <Alert
-                                message="Wallet Required"
-                                description="To create an offer, you'll need to connect your wallet to deploy the smart contract."
-                                type="info"
-                                showIcon
-                                action={
-                                    <Button 
-                                        size="small" 
-                                        type="primary"
-                                        icon={<WalletOutlined />}
-                                        onClick={handleConnectWallet}
-                                    >
-                                        Connect Wallet
-                                    </Button>
-                                }
-                                style={{ marginBottom: 16 }}
-                            />
-                        </div>
-                    )}
+                    {/* Wallet Connection Alert removed; handled in DeployStepContent on deploy attempt */}
                     
-                    {/* Network Status */}
-                    <div style={{ marginTop: 24, maxWidth: '500px', margin: '24px auto 0' }}>
-                        <NetworkStatus />
-                    </div>
+                    {/* Network Status removed as per request */}
                 </div>
 
                 {/* Steps */}

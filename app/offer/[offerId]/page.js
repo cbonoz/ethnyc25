@@ -137,35 +137,70 @@ export default function OfferPage({ params }) {
                 boxShadow: '0 4px 24px 0 rgba(114,46,209,0.08)'
             }}>
                 <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-                        <div style={{ flex: 1 }}>
-                            <h1 style={{ fontSize: 38, fontWeight: 700, margin: 0, color: 'white', letterSpacing: '-1px' }}>{offerData.title}</h1>
-                            <div style={{ marginTop: 12, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                                <Tag color="blue">{offerData.category}</Tag>
-                                <Tag color="purple">{offerData.businessType}</Tag>
-                                <Tag color={offerData.isActive ? 'green' : 'red'}>{offerData.isActive ? 'Active' : 'Inactive'}</Tag>
-                                {isOwner && <Tag color="gold">Owner View</Tag>}
+                    <div style={{
+                        background: 'rgba(20, 20, 40, 0.72)',
+                        borderRadius: 18,
+                        boxShadow: '0 4px 24px 0 rgba(0,0,0,0.10)',
+                        padding: '40px 32px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 32,
+                        backdropFilter: 'blur(2px)'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+                            <div style={{ flex: 1 }}>
+                                <h1 style={{ fontSize: 38, fontWeight: 700, margin: 0, color: 'white', letterSpacing: '-1px' }}>{offerData.title}</h1>
+                                <div style={{ marginTop: 12, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                                    <Tag color="blue">{offerData.category}</Tag>
+                                    {/* <Tag color="purple">{offerData.businessType}</Tag> */}
+                                    <Tag color={offerData.isActive ? 'green' : 'red'}>{offerData.isActive ? 'Active' : 'Inactive'}</Tag>
+                                    {isOwner && <Tag color="gold">Owner View</Tag>}
+                                </div>
+                            </div>
+                            <div style={{ minWidth: 180, textAlign: 'right' }}>
+                                <div style={{ fontSize: 22, fontWeight: 600, color: 'white' }}>{offerData.amount} PYUSD</div>
                             </div>
                         </div>
-                        <div style={{ minWidth: 180, textAlign: 'right' }}>
-                            <div style={{ fontSize: 22, fontWeight: 600, color: 'white' }}>{offerData.amount} PYUSD</div>
+                        <div style={{ marginTop: 12 }}>
+                            <Paragraph style={{ fontSize: '16px', lineHeight: '1.6', color: 'white', margin: 0 }}>{offerData.description}</Paragraph>
+                        </div>
+                        <div style={{ marginTop: 12 }}>
+                            <Row gutter={[24, 16]}>
+                                <Col xs={12} sm={6}>
+                                    <div style={{ color: 'white' }}>
+                                        <div style={{ fontSize: 13, opacity: 0.7 }}>Amount</div>
+                                        <div style={{ fontSize: 20, fontWeight: 600 }}>{offerData.amount} PYUSD</div>
+                                    </div>
+                                </Col>
+                                <Col xs={12} sm={6}>
+                                    <div style={{ color: 'white' }}>
+                                        <div style={{ fontSize: 13, opacity: 0.7 }}>Claims</div>
+                                        <div style={{ fontSize: 20, fontWeight: 600 }}>{offerData.claimCount}</div>
+                                    </div>
+                                </Col>
+                                <Col xs={12} sm={6}>
+                                    <div style={{ color: 'white' }}>
+                                        <div style={{ fontSize: 13, opacity: 0.7 }}>Created</div>
+                                        <div style={{ fontSize: 20, fontWeight: 600 }}>{offerData.createdAt ? new Date(offerData.createdAt).toLocaleDateString() : ''}</div>
+                                    </div>
+                                </Col>
+                            </Row>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Main Content - Offer Details Full Width */}
-            <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px 0 24px', background: '#fff', borderRadius: 16, boxShadow: '0 2px 16px 0 rgba(0,0,0,0.04)' }}>
-                <OfferDetailsCard offerData={offerData} onDeactivate={isOwner ? debouncedRefetch : undefined} />
-            </div>
+            {/* Main Content - Offer Details Full Width (removed, now in summary) */}
 
             {/* Offer & Requests Actions Full Width Below */}
             <div style={{ maxWidth: 1200, margin: '32px auto 0 auto', padding: '0 24px 48px 24px', background: '#fff', borderRadius: 16, boxShadow: '0 2px 16px 0 rgba(0,0,0,0.04)' }}>
                 {isOwner ? (
+                    <div>
                     <OwnerActionsCard 
                         offerData={offerData} 
                         onUpdate={debouncedRefetch}
                     />
+                    </div>
                 ) : (
                     <ClientActionsCard 
                         offerData={offerData} 

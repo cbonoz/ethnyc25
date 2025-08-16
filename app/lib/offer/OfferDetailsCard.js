@@ -48,18 +48,7 @@ const OfferDetailsCard = React.memo(function OfferDetailsCard({ offerData, onDea
 
     return (
         <Card style={{ marginBottom: 24 }}>
-            <div style={{ marginBottom: 24 }}>
-                <Title level={2}>{offerData.title}</Title>
-                <Space>
-                    <Tag color="blue">{offerData.category}</Tag>
-                    <Tag color="purple">{offerData.businessType}</Tag>
-                    <Tag color={offerData.isActive ? "green" : "red"}>
-                        {offerData.isActive ? "Active" : "Inactive"}
-                    </Tag>
-                </Space>
-            </div>
-            
-            <Paragraph style={{ fontSize: '16px', lineHeight: '1.6' }}>
+            <Paragraph style={{ fontSize: '16px', lineHeight: '1.6', marginBottom: 24 }}>
                 {offerData.description}
             </Paragraph>
 
@@ -101,7 +90,7 @@ const OfferDetailsCard = React.memo(function OfferDetailsCard({ offerData, onDea
                         <Text type="secondary" style={{ fontSize: '12px' }}>Created</Text>
                         <div style={{ fontSize: '16px', fontWeight: 'bold' }}>
                             <CalendarOutlined style={{ marginRight: 8 }} />
-                            {offerData.createdAt}
+                            {offerData.createdAt ? new Date(offerData.createdAt).toLocaleDateString() : ''}
                         </div>
                     </div>
                 </Col>

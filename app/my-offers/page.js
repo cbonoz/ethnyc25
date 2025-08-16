@@ -26,6 +26,11 @@ export default function MyOffersPage() {
           <div style={{ textAlign: "center", padding: 40 }}>
             <Spin size="large" />
           </div>
+        ) : !userAddress ? (
+          <div style={{ textAlign: 'center', padding: 60 }}>
+            <Title level={4} type="secondary">Connect your wallet to view your offers.</Title>
+            <Paragraph type="secondary">Once connected, your created offers will appear here.</Paragraph>
+          </div>
         ) : (
           <OwnerOffersGrid offers={offers} loading={loading} showEmptyState={true} />
         )}
