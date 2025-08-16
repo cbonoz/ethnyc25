@@ -9,7 +9,9 @@ import {
     Tag,
     Row,
     Col,
-    Statistic
+    Statistic,
+    Button,
+    message
 } from 'antd';
 import { 
     DollarOutlined, 
@@ -21,7 +23,7 @@ import { useWalletClient } from '../../hooks/useWalletClient';
 
 const { Title, Paragraph, Text } = Typography;
 
-export default function OfferDetailsCard({ offerData, onDeactivate }) {
+const OfferDetailsCard = React.memo(function OfferDetailsCard({ offerData, onDeactivate }) {
     const walletClient = useWalletClient();
     const [loading, setLoading] = React.useState(false);
 
@@ -105,7 +107,7 @@ export default function OfferDetailsCard({ offerData, onDeactivate }) {
                 </Col>
             </Row>
             {/* Deactivate Offer Button for Owner */}
-            {offerData.isActive && !offerData.isAccepted && (
+            {offerData.isActive && (
                 <div style={{ marginTop: 24, textAlign: 'right' }}>
                     <Button
                         danger
@@ -118,4 +120,5 @@ export default function OfferDetailsCard({ offerData, onDeactivate }) {
             )}
         </Card>
     );
-}
+});
+export default OfferDetailsCard;

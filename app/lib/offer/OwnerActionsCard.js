@@ -35,7 +35,7 @@ import { useWalletClient } from '../../hooks/useWalletClient';
 
 const { Title, Text, Paragraph } = Typography;
 
-export default function OwnerActionsCard({ offerData, onUpdate }) {
+const OwnerActionsCard = React.memo(function OwnerActionsCard({ offerData, onUpdate }) {
     if (!offerData) return null;
     const walletClient = useWalletClient();
     const [loadingComplete, setLoadingComplete] = useState(false);
@@ -49,27 +49,20 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
 
     if (!offerData) return null;
 
-    // Fetch contract balance and offer requests
+    // Fetch contract balance and offer requests only once on mount or when explicitly refreshed
+    const [refreshKey, setRefreshKey] = useState(0);
     useEffect(() => {
         let isMounted = true;
-        
         const fetchData = async () => {
-            if (!walletClient || !offerData?.contractAddress) {
-                return;
-            }
-
+            if (!walletClient || !offerData?.contractAddress) return;
             try {
-                // Fetch balance
-                const balance = await getContractBalance(walletClient, offerData.contractAddress);
-                
+                setLoadingRequests(true);
+                const [balance, requests] = await Promise.all([
+                    getContractBalance(walletClient, offerData.contractAddress),
+                    getOfferRequests(walletClient, offerData.contractAddress)
+                ]);
                 if (!isMounted) return;
                 setContractBalance(balance);
-                
-                // Fetch offer requests
-                setLoadingRequests(true);
-                const requests = await getOfferRequests(walletClient, offerData.contractAddress);
-                
-                if (!isMounted) return;
                 setOfferRequests(requests);
                 setLoadingRequests(false);
             } catch (error) {
@@ -79,15 +72,12 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
                 }
             }
         };
+        fetchData();
+        return () => { isMounted = false; };
+    }, [refreshKey]);
 
-        // Debounce the call
-        const timeoutId = setTimeout(fetchData, 300);
-        
-        return () => {
-            isMounted = false;
-            clearTimeout(timeoutId);
-        };
-    }, [walletClient, offerData?.contractAddress]);
+    // Call this to manually refresh data after actions
+    const refreshData = () => setRefreshKey(k => k + 1);
 
     // No approve action; replaced by mark complete at the offer level
 
@@ -106,9 +96,7 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
                 tx: tx || ''
             });
             if (onUpdate) onUpdate();
-            // Refresh requests
-            const requests = await getOfferRequests(walletClient, offerData.contractAddress);
-            setOfferRequests(requests);
+            refreshData();
         } catch (error) {
             console.error('Error rejecting request:', error);
             message.error(`Failed to reject request: ${error.message}`);
@@ -132,6 +120,7 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
                 tx: tx || ''
             });
             if (onUpdate) onUpdate();
+            refreshData();
         } catch (error) {
             console.error('Error completing offer:', error);
             message.error(`Failed to complete offer: ${error.message}`);
@@ -161,9 +150,7 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
             await withdrawFunds(walletClient, offerData.contractAddress);
             message.success('Funds withdrawn successfully!');
             if (onUpdate) onUpdate();
-            // Update balance
-            const newBalance = await getContractBalance(walletClient, offerData.contractAddress);
-            setContractBalance(newBalance);
+            refreshData();
         } catch (error) {
             console.error('Error withdrawing funds:', error);
             message.error(`Failed to withdraw funds: ${error.message}`);
@@ -188,6 +175,7 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
             await deactivateOffer(walletClient, offerData.contractAddress);
             message.success('Offer deactivated successfully! No new clients can request this offer.');
             if (onUpdate) onUpdate();
+            refreshData();
         } catch (error) {
             console.error('Error deactivating offer:', error);
             message.error(`Failed to deactivate offer: ${error.message}`);
@@ -469,4 +457,5 @@ export default function OwnerActionsCard({ offerData, onUpdate }) {
             </Space>
         </Card>
     );
-}
+});
+export default OwnerActionsCard;
