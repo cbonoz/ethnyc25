@@ -10,6 +10,7 @@ import { Content, Footer, Header } from 'antd/es/layout/layout';
 import Image from 'next/image';
 import ConnectButton from './ConnectButton';
 import { Theme } from '@ant-design/cssinjs';
+import { antdTheme, colors } from '../theme/colors';
 
 const isUploadUrl = (pathname) => {
 	return pathname?.startsWith('/upload');
@@ -22,7 +23,7 @@ function UiLayoutWrapper({ children }) {
 		menuItems = [
 			{
 				key: '/create',
-				label: <Link href="/create">Create Policy</Link>,
+				label: <Link href="/create">Make an offer page</Link>,
 				href: '/create'
 			},
 			{
@@ -36,18 +37,7 @@ function UiLayoutWrapper({ children }) {
 
 	return (
 		<StyledComponentsRegistry>
-			<ConfigProvider
-				theme={{
-					token: {
-						colorPrimary: '#2596be',
-						colorPrimaryHover: '#40a9d1',
-						colorPrimaryActive: '#1e7ba0',
-						colorLink: '#2596be',
-						colorLinkHover: '#40a9d1',
-						colorLinkActive: '#1e7ba0'
-					}
-				}}
-			>
+			<ConfigProvider theme={antdTheme}>
 				<Layout>
 					<Header style={{ background: '#fff', display: 'flex', alignItems: 'center' }}>
 						<Image

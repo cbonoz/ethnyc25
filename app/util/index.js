@@ -28,7 +28,7 @@ export const ipfsUrl = (cid, fileName) => {
 	return url;
 };
 
-export const policyUrl = (uploadId) => `${window.location.origin}/upload/${uploadId}`;
+export const offerUrl = (uploadId) => `${window.location.origin}/offer/${uploadId}`;
 
 export const convertCamelToHuman = (str) => {
 	// Check if likely datetime timestamp ms
@@ -278,11 +278,11 @@ export const shouldRetryTransaction = (error) => {
 
 	// Don't retry for contract validation errors
 	if (
-		error.message.includes('Amount exceeds policy maximum') ||
-		error.message.includes('Policy is not active') ||
+		error.message.includes('Amount exceeds offer maximum') ||
+		error.message.includes('Offer is not active') ||
 		error.message.includes('Invalid passcode') ||
 		error.message.includes('Receipt hash required') ||
-		error.message.includes('Only policy owner') ||
+		error.message.includes('Only offer owner') ||
 		error.message.includes('Insufficient contract balance')
 	) {
 		return false;
@@ -342,11 +342,11 @@ export const handleContractError = (error, operationName = 'transaction') => {
 	}
 
 	// Contract-specific validation errors
-	if (errorMessage.includes('Amount exceeds policy maximum')) {
-		throw new Error('Claim amount exceeds the policy maximum allowed amount.');
+	if (errorMessage.includes('Amount exceeds offer maximum')) {
+		throw new Error('Amount exceeds the offer maximum allowed amount.');
 	}
-	if (errorMessage.includes('Policy is not active')) {
-		throw new Error('This policy is currently inactive and cannot accept new claims.');
+	if (errorMessage.includes('Offer is not active')) {
+		throw new Error('This offer is currently inactive and cannot accept payments.');
 	}
 	if (errorMessage.includes('Invalid passcode')) {
 		throw new Error('Invalid passcode provided. Please check and try again.');
@@ -354,8 +354,8 @@ export const handleContractError = (error, operationName = 'transaction') => {
 	if (errorMessage.includes('Receipt hash required')) {
 		throw new Error('Please upload a valid receipt.');
 	}
-	if (errorMessage.includes('Only policy owner')) {
-		throw new Error('Only the policy owner can perform this action.');
+	if (errorMessage.includes('Only offer owner')) {
+		throw new Error('Only the offer owner can perform this action.');
 	}
 	if (errorMessage.includes('Insufficient contract balance')) {
 		throw new Error('Insufficient contract balance for this operation.');

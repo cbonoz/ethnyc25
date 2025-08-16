@@ -13,7 +13,7 @@ export default function About() {
 
     const features = [
         {
-            icon: <SafetyOutlined style={{ fontSize: '24px', color: '#1890ff' }} />,
+            icon: <SafetyOutlined style={{ fontSize: '24px', color: '#ec348b' }} />,
             title: 'Decentralized & Trustless',
             description: 'All form submissions, offers, and payments are recorded on-chain using smart contracts. No centralized escrow or third-party platforms.'
         },
@@ -23,12 +23,12 @@ export default function About() {
             description: 'Businesses can accept stablecoin payments for deposits, milestones, or offers—no volatility, no banking fees.'
         },
         {
-            icon: <CheckCircleTwoTone twoToneColor="#722ed1" style={{ fontSize: '24px' }} />,
+            icon: <CheckCircleTwoTone twoToneColor="#ec348b" style={{ fontSize: '24px' }} />,
             title: 'Smart Contract Automation',
             description: 'Hardhat-powered smart contracts handle form validation, offer generation, and automated payment releases.'
         },
         {
-            icon: <RocketOutlined style={{ fontSize: '24px', color: '#fa8c16' }} />,
+            icon: <RocketOutlined style={{ fontSize: '24px', color: '#ec348b' }} />,
             title: 'One-Click Form + Payment',
             description: 'Collect structured client info and payment in a single, seamless flow. No accounts or complex onboarding required.'
         }

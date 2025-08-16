@@ -7,6 +7,7 @@ import { APP_DESC, APP_NAME, siteConfig } from './constants';
 import { CheckCircleTwoTone } from '@ant-design/icons';
 import Logo from './lib/Logo';
 import { useRouter } from 'next/navigation';
+import { colors } from './theme/colors';
 
 const CHECKLIST_ITEMS = [
 	'One-click form collection and payments for any business',
@@ -55,7 +56,7 @@ const Home = () => {
 									}}
 								>
 									Decentralized Form + Payment
-									<span style={{ color: '#1890ff' }}> for Any Business</span>
+									<span style={{ color: '#ec348b' }}> for Any Business</span>
 								</h1>
 								<p
 									style={{
@@ -74,7 +75,7 @@ const Home = () => {
 								{CHECKLIST_ITEMS.map((item, i) => (
 									<div key={i} style={{ display: 'flex', alignItems: 'flex-start' }}>
 										<CheckCircleTwoTone
-											twoToneColor="#1890ff"
+											twoToneColor="#ec348b"
 											style={{ fontSize: '20px', marginTop: '4px', marginRight: '12px' }}
 										/>
 										<span
@@ -183,7 +184,7 @@ const Home = () => {
 									style={{
 										width: '64px',
 										height: '64px',
-										background: '#e6f7ff',
+										background: '#fde7f3',
 										borderRadius: '50%',
 										display: 'flex',
 										alignItems: 'center',
@@ -191,7 +192,7 @@ const Home = () => {
 										margin: '0 auto 24px'
 									}}
 								>
-									<CheckCircleTwoTone twoToneColor="#1890ff" style={{ fontSize: '24px' }} />
+									<CheckCircleTwoTone twoToneColor="#ec348b" style={{ fontSize: '24px' }} />
 								</div>
 								<h3
 									style={{
@@ -299,7 +300,7 @@ const Home = () => {
 				>
 					<div
 						style={{
-							background: 'linear-gradient(135deg, #1890ff 0%, #722ed1 100%)',
+							background: 'linear-gradient(135deg, #ec348b 0%, #722ed1 100%)',
 							borderRadius: '24px',
 							padding: '48px',
 							color: 'white'
@@ -333,7 +334,7 @@ const Home = () => {
 								fontSize: '18px',
 								fontWeight: '600',
 								background: 'white',
-								color: '#1890ff',
+								color: '#ec348b',
 								border: 'none',
 								borderRadius: '8px'
 							}}
