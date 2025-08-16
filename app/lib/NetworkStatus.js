@@ -3,6 +3,7 @@
 import { Alert, Button, Spin } from 'antd';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 import { useNetworkSwitcher } from '../hooks/useNetworkSwitcher';
+import { useState, useEffect } from 'react';
 
 const NetworkStatus = ({ showSwitcher = true, style = {} }) => {
   const { primaryWallet } = useDynamicContext();
@@ -12,9 +13,23 @@ const NetworkStatus = ({ showSwitcher = true, style = {} }) => {
     switchToRequiredNetwork, 
     requiredNetwork 
   } = useNetworkSwitcher();
+  
+  // Add local state to prevent flashing
+  const [isVisible, setIsVisible] = useState(false);
 
-  // Don't show anything if no wallet is connected
-  if (!primaryWallet) {
+  // Only show component after initial check is complete
+  useEffect(() => {
+    if (primaryWallet) {
+      // Small delay to let network check complete
+      const timer = setTimeout(() => setIsVisible(true), 200);
+      return () => clearTimeout(timer);
+    } else {
+      setIsVisible(false);
+    }
+  }, [primaryWallet]);
+
+  // Don't show anything if no wallet is connected or not yet visible
+  if (!primaryWallet || !isVisible) {
     return null;
   }
 

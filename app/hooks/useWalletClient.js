@@ -14,45 +14,54 @@ export function useWalletClient() {
             return null;
         }
         
-        console.log('useWalletClient memoization check:', { 
-            primaryWallet: !!primaryWallet,
+        console.log('useWalletClient: Creating wallet client', { 
+            hasWallet: !!primaryWallet,
             hasConnector: !!primaryWallet?.connector,
             connectorKey: primaryWallet?.connector?.key,
-            address: primaryWallet?.address
+            address: primaryWallet?.address,
+            chainId: ACTIVE_CHAIN.id,
+            chainName: ACTIVE_CHAIN.name
         });
 
         if (!primaryWallet?.connector) {
-            console.log('No wallet connector available');
+            console.log('useWalletClient: No wallet connector available');
             return null;
         }
 
-        // For Dynamic Labs v4+, try to get the provider directly
+        // For Dynamic Labs, get the provider from connector
         const provider = primaryWallet.connector.provider || primaryWallet.connector.getProvider?.();
         
         if (!provider) {
-            console.log('No provider available from connector');
+            console.log('useWalletClient: No provider available from connector');
             return null;
         }
 
         try {
+            // Create wallet client following viem best practices
             const client = createWalletClient({
+                account: primaryWallet.address, // Hoist the account
                 chain: ACTIVE_CHAIN,
                 transport: custom(provider),
-                account: primaryWallet.address, // Add the account from primaryWallet
             });
             
-            console.log('Created wallet client:', { 
+            console.log('useWalletClient: Successfully created wallet client', { 
                 hasAccount: !!client.account,
-                address: client.account?.address || primaryWallet.address,
-                chain: client.chain?.name
+                accountAddress: client.account,
+                chainId: client.chain?.id,
+                chainName: client.chain?.name
             });
             
             return client;
         } catch (error) {
-            console.error('Error creating wallet client:', error);
+            console.error('useWalletClient: Error creating wallet client:', error);
             return null;
         }
-    }, [primaryWallet?.address, primaryWallet?.connector?.key]);
+    }, [
+        primaryWallet?.address, 
+        primaryWallet?.connector?.key,
+        // Add chain dependency in case it changes
+        ACTIVE_CHAIN.id
+    ]);
 
     return walletClient;
 }

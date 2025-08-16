@@ -14,50 +14,11 @@ import { PYUSD_TOKEN_ADDRESS, ACTIVE_CHAIN } from '../constants';
 import { SIMPLEOFFER_CONTRACT } from './metadata';
 
 
-// Create multiple public clients with fallback endpoints
-const rpcEndpoints = [
-    'https://rpc2.sepolia.org',
-    'https://sepolia.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
-    'https://ethereum-sepolia-rpc.publicnode.com',
-    'https://rpc.sepolia.org'
-];
-
-let currentRpcIndex = 0;
-
-const createPublicClientWithFallback = () => {
-    const endpoint = rpcEndpoints[currentRpcIndex];
-    console.log(`Creating public client with endpoint: ${endpoint}`);
-    
-    return createPublicClient({
-        chain: ACTIVE_CHAIN,
-        transport: http(endpoint, {
-            retryCount: 2,
-            retryDelay: 2000,
-            fetchOptions: {
-                timeout: 20000
-            }
-        })
-    });
-};
-
-const publicClient = createPublicClientWithFallback();
-
-// Helper function to add timeout to contract reads with fallback
-const readContractWithTimeout = async (contractCall, timeoutMs = 15000) => {
-    return Promise.race([
-        contractCall,
-        new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Contract read timeout')), timeoutMs)
-        )
-    ]);
-};
-
-// Function to switch to next RPC endpoint
-const switchToNextRpc = () => {
-    currentRpcIndex = (currentRpcIndex + 1) % rpcEndpoints.length;
-    console.log(`Switching to RPC endpoint: ${rpcEndpoints[currentRpcIndex]}`);
-    return createPublicClientWithFallback();
-};
+// Create a simple public client
+const publicClient = createPublicClient({
+    chain: ACTIVE_CHAIN,
+    transport: http()
+});
 
 // Add a simple delay function
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -66,13 +27,15 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 let activeRequests = 0;
 const MAX_CONCURRENT_REQUESTS = 2;
 
-// Combined metadata and status fetch (for compatibility with existing code)
+// Combined metadata and status fetch (simplified)
 export const getMetadata = async (walletClient, address) => {
     console.log('🔍 getMetadata function called with:', { 
         walletClient: !!walletClient, 
         address,
         publicClient: !!publicClient,
-        activeRequests
+        activeRequests,
+        chainId: ACTIVE_CHAIN.id,
+        chainName: ACTIVE_CHAIN.name
     });
     
     // Wait if too many concurrent requests
@@ -85,28 +48,41 @@ export const getMetadata = async (walletClient, address) => {
     
     try {
         console.log('Fetching metadata for contract:', address);
+        console.log('Using public client:', !!publicClient);
+        console.log('Chain info:', { id: ACTIVE_CHAIN.id, name: ACTIVE_CHAIN.name });
         
-        // Get offer metadata
+        // Validate contract address format
+        if (!address || !address.startsWith('0x') || address.length !== 42) {
+            throw new Error(`Invalid contract address format: ${address}`);
+        }
+
+        // Get offer metadata with timeout
         console.log('📞 Calling publicClient.readContract for getOfferMetadata...');
-        const metadata = await readContractWithTimeout(
+        const metadata = await Promise.race([
             publicClient.readContract({
                 address: address,
                 abi: SIMPLEOFFER_CONTRACT.abi,
                 functionName: 'getOfferMetadata',
-            })
-        );
+            }),
+            new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Metadata read timeout after 10 seconds')), 10000)
+            )
+        ]);
         
         console.log('✅ Metadata result:', metadata);
 
-        // Get offer status  
+        // Get offer status with timeout
         console.log('📞 Calling publicClient.readContract for getOfferStatus...');
-        const status = await readContractWithTimeout(
+        const status = await Promise.race([
             publicClient.readContract({
                 address: address,
                 abi: SIMPLEOFFER_CONTRACT.abi,
                 functionName: 'getOfferStatus',
-            })
-        );
+            }),
+            new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Status read timeout after 10 seconds')), 10000)
+            )
+        ]);
         
         console.log('✅ Status result:', status);
 

@@ -6,7 +6,7 @@ import { ACTIVE_CHAIN } from '../constants';
 
 export const useNetworkSwitcher = () => {
   const { primaryWallet } = useDynamicContext();
-  const [isCorrectNetwork, setIsCorrectNetwork] = useState(false);
+  const [isCorrectNetwork, setIsCorrectNetwork] = useState(true); // Start with true to prevent initial flash
   const [isChecking, setIsChecking] = useState(false);
   const [hasChecked, setHasChecked] = useState(false);
   const checkTimeoutRef = useRef(null);
@@ -133,7 +133,12 @@ export const useNetworkSwitcher = () => {
   // Only check network when wallet changes and we haven't checked yet
   useEffect(() => {
     if (primaryWallet && !hasChecked) {
-      checkNetwork();
+      // Add a small delay to prevent rapid state changes
+      const timeoutId = setTimeout(() => {
+        checkNetwork();
+      }, 100);
+      
+      return () => clearTimeout(timeoutId);
     }
   }, [primaryWallet, hasChecked, checkNetwork]);
 
@@ -141,7 +146,7 @@ export const useNetworkSwitcher = () => {
   useEffect(() => {
     if (!primaryWallet) {
       setHasChecked(false);
-      setIsCorrectNetwork(false);
+      setIsCorrectNetwork(true); // Default to true when no wallet to hide switcher
     }
   }, [primaryWallet]);
 

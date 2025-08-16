@@ -22,10 +22,25 @@ export const APP_NAME = siteConfig.name;
 export const APP_DESC = siteConfig.description;
 
 
-// Example: Hedera testnet/mainnet (replace with actual chain objects as needed)
-export const CHAIN_OPTIONS = [];
-export const CHAIN_MAP = {};
+// Chain configuration with explorer URLs
+export const CHAIN_OPTIONS = [sepolia, mainnet];
+export const CHAIN_MAP = {
+    [sepolia.id]: sepolia,
+    [mainnet.id]: mainnet
+};
 export const ACTIVE_CHAIN = sepolia;
+
+// Helper function to get explorer URL for current chain
+export const getExplorerUrl = (chainId = ACTIVE_CHAIN.id) => {
+    const chain = CHAIN_MAP[chainId] || sepolia;
+    return chain.blockExplorers?.default?.url || sepolia.blockExplorers.default.url;
+};
+
+// Helper function to generate explorer links
+export const getExplorerLink = (address, type = 'address', chainId = ACTIVE_CHAIN.id) => {
+    const baseUrl = getExplorerUrl(chainId);
+    return `${baseUrl}/${type}/${address}`;
+};
 
 // PYUSD token address (replace with actual addresses)
 export const PYUSD_TOKEN_ADDRESS = process.env.NEXT_PUBLIC_NETWORK === 'mainnet'

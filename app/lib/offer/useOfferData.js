@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useWalletClient } from '../../hooks/useWalletClient';
 import { useWalletAddress } from '../../hooks/useWalletAddress';
 import { getMetadata } from '../../util/appContractViem';
@@ -13,7 +13,7 @@ export default function useOfferData(offerId) {
     const [offerData, setOfferData] = useState(null);
     const hasLoadedRef = useRef(false);
 
-    const fetchOfferData = async () => {
+    const fetchOfferData = useCallback(async () => {
         console.log('fetchOfferData called with:', { walletClient: !!walletClient, offerId });
         
         if (!offerId) {
@@ -64,7 +64,7 @@ export default function useOfferData(offerId) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [offerId]); // Only depend on offerId
 
     useEffect(() => {
         // Only fetch once when component mounts and offerId is available
@@ -72,14 +72,14 @@ export default function useOfferData(offerId) {
             console.log('Initial fetch for offerId:', offerId);
             fetchOfferData();
         }
-    }, [offerId]); // Only depend on offerId
+    }, [fetchOfferData]); // Now we can safely depend on fetchOfferData since it's memoized
 
     // Manual refetch function - for when user performs actions that change the offer state
-    const refetch = async () => {
+    const refetch = useCallback(async () => {
         console.log('Manual refetch requested for offerId:', offerId);
         hasLoadedRef.current = false;
         await fetchOfferData();
-    };
+    }, [fetchOfferData]);
 
     const isOwner = userAddress && offerData && 
         userAddress.toLowerCase() === offerData.owner.toLowerCase();

@@ -6,6 +6,7 @@ import { Form, message } from 'antd';
 import { deployContract } from '../../util/appContract';
 import { useEthersSigner } from '../../hooks/useEthersSigner';
 import { useNetworkSwitcher } from '../../hooks/useNetworkSwitcher';
+import { useWalletAddress } from '../../hooks/useWalletAddress';
 
 export default function useCreateOffer() {
     const [form] = Form.useForm();
@@ -15,6 +16,7 @@ export default function useCreateOffer() {
     const [contractAddress, setContractAddress] = useState(null);
     const router = useRouter();
     const signer = useEthersSigner();
+    const { address: walletAddress } = useWalletAddress();
     const { ensureCorrectNetwork, requiredNetwork } = useNetworkSwitcher();
 
     const handleNext = async () => {
@@ -39,15 +41,23 @@ export default function useCreateOffer() {
             
             console.log('Creating offer with data:', finalOfferData);
 
+            // Check wallet connection first
+            if (!walletAddress) {
+                message.error('Please connect your wallet before deploying the contract');
+                return;
+            }
+
             if (!signer) {
-                throw new Error('Please connect your wallet to deploy the contract');
+                message.error('Wallet connection error. Please try reconnecting your wallet');
+                return;
             }
 
             // Ensure we're on the correct network before deploying
             try {
                 await ensureCorrectNetwork();
             } catch (networkError) {
-                throw new Error(`Network Error: ${networkError.message}`);
+                message.error(`Network Error: ${networkError.message}`);
+                return;
             }
 
             // Calculate deadline (convert timeline to timestamp)
@@ -121,6 +131,7 @@ export default function useCreateOffer() {
         currentStep,
         offerData,
         contractAddress,
+        walletAddress,
         handleNext,
         handlePrevious,
         handleCreateOffer,

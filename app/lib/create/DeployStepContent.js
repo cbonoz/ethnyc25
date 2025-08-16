@@ -6,9 +6,12 @@ import {
     Card, 
     Typography, 
     Divider, 
-    Spin 
+    Spin,
+    Alert
 } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined, WalletOutlined } from '@ant-design/icons';
+import { useWalletAddress } from '../../hooks/useWalletAddress';
+import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -17,6 +20,13 @@ export default function DeployStepContent({
     offerData, 
     onDeploy 
 }) {
+    const { address: walletAddress } = useWalletAddress();
+    const { setShowDynamicUserProfile } = useDynamicContext();
+
+    const handleConnectWallet = () => {
+        setShowDynamicUserProfile(true);
+    };
+
     if (loading) {
         return (
             <div style={{ textAlign: 'center' }}>
@@ -48,15 +58,36 @@ export default function DeployStepContent({
                 <Text strong>Payment Type: {offerData.paymentType}</Text>
             </Card>
             
-            <Button 
-                type="primary" 
-                size="large"
-                icon={<PlusOutlined />}
-                onClick={onDeploy}
-                loading={loading}
-            >
-                Deploy Offer Contract
-            </Button>
+            {/* Wallet Connection Check */}
+            {!walletAddress ? (
+                <div style={{ marginBottom: 24 }}>
+                    <Alert
+                        message="Wallet Required"
+                        description="You need to connect your wallet to deploy the smart contract. Please connect your wallet to continue."
+                        type="warning"
+                        showIcon
+                        style={{ marginBottom: 16 }}
+                    />
+                    <Button 
+                        type="primary" 
+                        size="large"
+                        icon={<WalletOutlined />}
+                        onClick={handleConnectWallet}
+                    >
+                        Connect Wallet
+                    </Button>
+                </div>
+            ) : (
+                <Button 
+                    type="primary" 
+                    size="large"
+                    icon={<PlusOutlined />}
+                    onClick={onDeploy}
+                    loading={loading}
+                >
+                    Deploy Offer Contract
+                </Button>
+            )}
         </div>
     );
 }

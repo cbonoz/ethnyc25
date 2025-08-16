@@ -4,10 +4,13 @@ import React from 'react';
 import { 
     Card, 
     Typography, 
-    Space 
+    Space,
+    Button
 } from 'antd';
+import { ExternalLinkOutlined } from '@ant-design/icons';
+import { getExplorerLink } from '../../constants';
 
-const { Text } = Typography;
+const { Text, Link } = Typography;
 
 export default function ContractInfoCard({ offerData }) {
     if (!offerData) return null;
@@ -18,16 +21,32 @@ export default function ContractInfoCard({ offerData }) {
                 <div>
                     <Text strong>Contract Address:</Text>
                     <br />
-                    <Text code copyable style={{ fontSize: '12px' }}>
-                        {offerData.contractAddress}
-                    </Text>
+                    <Link 
+                        href={getExplorerLink(offerData.contractAddress, 'address')}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ fontSize: '12px' }}
+                    >
+                        <Text code copyable style={{ fontSize: '12px' }}>
+                            {offerData.contractAddress}
+                        </Text>
+                        <ExternalLinkOutlined style={{ marginLeft: 4 }} />
+                    </Link>
                 </div>
                 <div>
                     <Text strong>Owner:</Text>
                     <br />
-                    <Text code copyable style={{ fontSize: '12px' }}>
-                        {offerData.owner}
-                    </Text>
+                    <Link 
+                        href={getExplorerLink(offerData.owner, 'address')}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ fontSize: '12px' }}
+                    >
+                        <Text code copyable style={{ fontSize: '12px' }}>
+                            {offerData.owner}
+                        </Text>
+                        <ExternalLinkOutlined style={{ marginLeft: 4 }} />
+                    </Link>
                 </div>
                 <div>
                     <Text strong>Location:</Text>

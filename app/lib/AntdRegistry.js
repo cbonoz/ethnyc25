@@ -15,13 +15,11 @@ const StyledComponentsRegistry = ({ children }) => {
   });
 
   useEffect(() => {
-    console.log('useEffect');
     setReady(true);
   }, []);
 
   if (!ready) {
     // FOUC (flash of unstyled content fix, wait for page to be ready)
-    console.log('returning null')
     return <div><header><img/></header><body/></div>
     // return children;
   }
