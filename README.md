@@ -64,11 +64,11 @@ Dynamic provides wallet-based authentication for both clients and service provid
 - Navigation and session management: Maintains user state and enables seamless wallet switching.
 
 #### PYUSD
-PYUSD enables stable, non-volatile payments for businesses and freelancers. All deposits, milestone completions, and offers are settled in PYUSD, ensuring predictable value transfer without banking fees or volatility risk. SimpleOffer is also able to eliminate traditional payment processing fees, chargebacks, and delay as only a wallet is needed to receive and use PYUSD.
+SimpleOffer enables freelancers, small businesses, and consumers to collect and manage payments for their trade or expertise. PYUSD enables stable, non-volatile payments for businesses and freelancers. All deposits, milestone completions, and offers are settled in PYUSD, ensuring predictable value transfer without banking fees or volatility risk. Using PYUSD, the app is also able to eliminate traditional payment processing fees, chargebacks, and delay as only a wallet is needed. PYUSD covers the most critical flow in the app: enabling preauthorization and payment to each smart contract deployed by SimpleOffer and an escrow mechanism which pays out to users on the platform.
 
-All transactions are recorded on-chain, providing transparent, tamper-proof records for accounting, compliance, and dispute resolution for whether a payment was made or not.
+All transactions are recorded on-chain, providing transparent, tamper-proof records for accounting, compliance, and dispute resolution for whether a payment was made or not. Guaranteed reserves makes SimpleOffer a perfect mechanism for merchants looking to onboard onto ERC20 but don't want to assume currency risk of unknown tokens and providers like many other unregulated stablecoins.
 
-Example offer request made through the platform for 1 PYUSD: https://sepolia.etherscan.io/tx/0x215511fd9e5af29a3d8a2da988790d1a36eb90300a8a9f31506db3d666e643ea
+Example offer request made through the platform for 1 PYUSD: https://sepolia.etherscan.io/tx/0x215511fd9e5af29a3d8a2da988790d1a36eb90300a8a9f31506db3d666e643ea. This payment emits a <a href="https://github.com/cbonoz/ethnyc25/blob/main/contracts/contracts/SimpleOfferContract.sol#L63">contract event</a> and can be withdrawn after the order is marked as complete.
 
 **Locations used:**
 - Offer contract: All payments, deposits, and milestone releases are denominated and settled in PYUSD.
@@ -76,7 +76,7 @@ Example offer request made through the platform for 1 PYUSD: https://sepolia.eth
 - Transaction history: On-chain records show all PYUSD transfers for offers and claims.
 
 #### Hardhat
-A contract is deployed for every offer page. We use hardhat to ensure there won't be any errors and enable the test ABI to be built and transferred as part of the deploy process to the SingleOffer app.
+A <a href="https://github.com/cbonoz/ethnyc25/blob/main/contracts/contracts/SimpleOfferContract.sol#L7">Offer contract</a> is deployed for every offer page. We use hardhat to ensure there won't be any errors and enable the test ABI to be built and transferred as part of the deploy process to the SingleOffer app.
 The SingleOffer contract has a local script in `update-metadata.js` which automatically updates this based on the hardhat build output. 
 
 SingleOffer also has both an ignition module for command line contract deployments and solidity unit tests as part of the build.
@@ -84,7 +84,7 @@ SingleOffer also has both an ignition module for command line contract deploymen
 **Locations used:**
 - Contract deployment: Each new offer page triggers a Hardhat deployment of a unique contract.
 - Build pipeline: Hardhat compiles contracts and generates ABIs/types for frontend integration.
-- Automated testing: Hardhat runs JS/TS and Solidity tests to validate behavior.
+- Automated testing: The app has JS/TS and Solidity tests to validate behavior. <a href="https://github.com/cbonoz/ethnyc25/blob/main/contracts/contracts/SimpleOfferContract.t.sol#L55">example</a>.
 
 ---
 
