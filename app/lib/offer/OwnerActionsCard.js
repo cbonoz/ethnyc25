@@ -35,7 +35,7 @@ import { useWalletClient } from '../../hooks/useWalletClient';
 
 const { Title, Text, Paragraph } = Typography;
 
-const OwnerActionsCard = React.memo(function OwnerActionsCard({ offerData, onUpdate }) {
+function OwnerActionsCard({ offerData, onUpdate }) {
     if (!offerData) return null;
     const walletClient = useWalletClient();
     const [loadingComplete, setLoadingComplete] = useState(false);
@@ -46,8 +46,8 @@ const OwnerActionsCard = React.memo(function OwnerActionsCard({ offerData, onUpd
     const [offerRequests, setOfferRequests] = useState([]);
     const [loadingRequests, setLoadingRequests] = useState(false);
     const [modal, setModal] = useState({ open: false, title: '', content: '', tx: '' });
-
-    if (!offerData) return null;
+    const [canCheckStatus, setCanCheckStatus] = useState(false);
+    const [refreshTimeout, setRefreshTimeout] = useState(null);
 
     // Fetch contract balance and offer requests only once on mount or when explicitly refreshed
     const [refreshKey, setRefreshKey] = useState(0);
@@ -92,11 +92,17 @@ const OwnerActionsCard = React.memo(function OwnerActionsCard({ offerData, onUpd
             setModal({
                 open: true,
                 title: 'Offer Rejected',
-                content: 'Offer request rejected. Funds can now be withdrawn by the requester.',
+                content: 'Offer request rejected. Funds can now be withdrawn by the requester.\n\nThis action is being confirmed on-chain. This may take a few minutes. You can check the status now or wait for an automatic refresh.',
                 tx: tx || ''
             });
-            if (onUpdate) onUpdate();
-            refreshData();
+            setCanCheckStatus(true);
+            if (refreshTimeout) clearTimeout(refreshTimeout);
+            const timeout = setTimeout(() => {
+                setCanCheckStatus(false);
+                if (onUpdate) onUpdate();
+                refreshData();
+            }, 10000);
+            setRefreshTimeout(timeout);
         } catch (error) {
             console.error('Error rejecting request:', error);
             message.error(`Failed to reject request: ${error.message}`);
@@ -116,11 +122,17 @@ const OwnerActionsCard = React.memo(function OwnerActionsCard({ offerData, onUpd
             setModal({
                 open: true,
                 title: 'Offer Marked as Completed',
-                content: 'Offer marked as completed successfully!',
+                content: 'Offer marked as completed successfully!\n\nThis action is being confirmed on-chain. This may take a few minutes. You can check the status now or wait for an automatic refresh.',
                 tx: tx || ''
             });
-            // Force refresh to get latest requests from contract
-            refreshData();
+            setCanCheckStatus(true);
+            if (refreshTimeout) clearTimeout(refreshTimeout);
+            const timeout = setTimeout(() => {
+                setCanCheckStatus(false);
+                if (onUpdate) onUpdate();
+                refreshData();
+            }, 10000);
+            setRefreshTimeout(timeout);
         } catch (error) {
             console.error('Error completing offer:', error);
             message.error(`Failed to complete offer: ${error.message}`);
@@ -132,6 +144,8 @@ const OwnerActionsCard = React.memo(function OwnerActionsCard({ offerData, onUpd
         setModal({ open: false, title: '', content: '', tx: '' });
         setLoadingComplete(false);
         setLoadingReject(null);
+        setCanCheckStatus(false);
+        if (refreshTimeout) clearTimeout(refreshTimeout);
     };
 
     const handleWithdrawFunds = async () => {
@@ -199,6 +213,13 @@ const OwnerActionsCard = React.memo(function OwnerActionsCard({ offerData, onUpd
         }
     };
 
+    // Clean up timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (refreshTimeout) clearTimeout(refreshTimeout);
+        };
+    }, [refreshTimeout]);
+
     const statusInfo = getStatusInfo();
 
     return (
@@ -249,17 +270,43 @@ const OwnerActionsCard = React.memo(function OwnerActionsCard({ offerData, onUpd
                     open={modal.open}
                     title={modal.title}
                     onCancel={handleModalClose}
-                    onOk={handleModalClose}
-                    okText="Close"
-                    cancelButtonProps={{ style: { display: 'none' } }}
+                    footer={null}
                 >
-                    <p>{modal.content}</p>
+                    <p style={{ whiteSpace: 'pre-line' }}>{modal.content}</p>
                     {modal.tx && (
                         <div style={{ marginTop: 12 }}>
                             <span style={{ fontSize: 12, color: '#888' }}>Tx Hash:</span>
                             <div style={{ wordBreak: 'break-all', fontSize: 13 }}>{typeof modal.tx === 'string' ? modal.tx : JSON.stringify(modal.tx)}</div>
                         </div>
                     )}
+                    <div style={{ marginTop: 16, textAlign: 'center' }}>
+                        {canCheckStatus ? (
+                            <Button 
+                                type="primary" 
+                                size="large" 
+                                style={{ marginTop: 12 }}
+                                onClick={() => {
+                                    setCanCheckStatus(false);
+                                    if (refreshTimeout) clearTimeout(refreshTimeout);
+                                    if (onUpdate) onUpdate();
+                                    refreshData();
+                                }}
+                            >
+                                Check Status
+                            </Button>
+                        ) : (
+                            <Button 
+                                type="primary" 
+                                size="large" 
+                                style={{ marginTop: 12 }}
+                                onClick={handleModalClose}
+                            >
+                                Close
+                            </Button>
+                        )}
+                    </div>
+
+
                 </Modal>
 
                 {/* Offer Requests */}
@@ -458,5 +505,5 @@ const OwnerActionsCard = React.memo(function OwnerActionsCard({ offerData, onUpd
             </Space>
         </Card>
     );
-});
+}
 export default OwnerActionsCard;

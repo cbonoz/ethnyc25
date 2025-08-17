@@ -60,6 +60,8 @@ export default function ClientActionsCard({ offerData, onUpdate }) {
     const [transactionHash, setTransactionHash] = useState(null);
     const [transactionStep, setTransactionStep] = useState(''); // 'approval', 'funding', 'complete'
     const [showSuccess, setShowSuccess] = useState(false);
+    const [refreshTimeout, setRefreshTimeout] = useState(null);
+    const [canCheckStatus, setCanCheckStatus] = useState(false);
 
     if (!offerData) return null;
 
@@ -129,9 +131,14 @@ export default function ClientActionsCard({ offerData, onUpdate }) {
             setHasApplied(true);
             setIsApproved(true);
             form.resetFields();
-            
-            if (onUpdate) onUpdate();
-        } catch (error) {
+            // Start 10s timer for delayed refresh
+            setCanCheckStatus(true);
+            const timeout = setTimeout(() => {
+                setCanCheckStatus(false);
+                if (onUpdate) onUpdate();
+            }, 10000);
+            setRefreshTimeout(timeout);
+    } catch (error) {
             console.error('Error submitting request and payment:', error);
             message.destroy(); // Clear any loading messages
             message.error(`Failed to complete transaction: ${error.message}`);
@@ -164,6 +171,13 @@ export default function ClientActionsCard({ offerData, onUpdate }) {
     };
 
     const status = getApplicationStatus();
+
+    // Clean up timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (refreshTimeout) clearTimeout(refreshTimeout);
+        };
+    }, [refreshTimeout]);
 
     return (
         <>
@@ -210,7 +224,6 @@ export default function ClientActionsCard({ offerData, onUpdate }) {
                                 Your request has been submitted and ${offerData.amount} PYUSD has been sent to the contract.
                             </Text>
                         </div>
-                        
                         <div style={{ backgroundColor: '#f6ffed', padding: '12px', borderRadius: '6px' }}>
                             <Text strong>Transaction Hash:</Text>
                             <br />
@@ -223,18 +236,35 @@ export default function ClientActionsCard({ offerData, onUpdate }) {
                                 {transactionHash} ↗
                             </a>
                         </div>
-
-                        <Button 
-                            type="primary" 
-                            size="large" 
-                            block
-                            onClick={() => {
-                                setShowSuccess(false);
-                                // No auto-refresh; just close the modal
-                            }}
-                        >
-                            Back to Offer
-                        </Button>
+                        <Text type="secondary" style={{ fontSize: '12px' }}>
+                            Payment is being confirmed on-chain. This may take a few minutes.<br />
+                            You can check the status now or wait for an automatic refresh.
+                        </Text>
+                        {canCheckStatus ? (
+                            <Button 
+                                type="primary" 
+                                size="large" 
+                                block
+                                onClick={() => {
+                                    setCanCheckStatus(false);
+                                    if (refreshTimeout) clearTimeout(refreshTimeout);
+                                    if (onUpdate) onUpdate();
+                                }}
+                            >
+                                Check Status
+                            </Button>
+                        ) : (
+                            <Button 
+                                type="primary" 
+                                size="large" 
+                                block
+                                onClick={() => {
+                                    setShowSuccess(false);
+                                }}
+                            >
+                                Back to Offer
+                            </Button>
+                        )}
                     </Space>
                 </Card>
             )}

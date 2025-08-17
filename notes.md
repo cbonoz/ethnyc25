@@ -69,6 +69,8 @@ PYUSD enables stable, non-volatile payments for businesses and freelancers. All 
 
 All transactions are recorded on-chain, providing transparent, tamper-proof records for accounting, compliance, and dispute resolution for whether a payment was made or not.
 
+Example offer request made through the platform for 1 PYUSD: https://sepolia.etherscan.io/tx/0x215511fd9e5af29a3d8a2da988790d1a36eb90300a8a9f31506db3d666e643ea
+
 **Locations used:**
 - Offer contract: All payments, deposits, and milestone releases are denominated and settled in PYUSD.
 - Payment modal: Users fund offers and pay for services using PYUSD stablecoin.
