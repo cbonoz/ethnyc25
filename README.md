@@ -44,11 +44,12 @@ Existing solutions partially address these problems, but often have limitations 
 **SimpleOffer** provides a **one-click, decentralized form + payment system** for service providers and clients. Here’s the typical user journey:
 
 ### How it works (step-by-step):
+
 1. **Connect wallet** via Dynamic → authenticate client/pro
 2. **Client submits service request form** (optionally AI-assisted validation)
 3. **Smart contract is deployed** via Hardhat → PYUSD payment deposited
 4. **Service provider reviews request** (optionally AI-assisted offer generation)
-5. **Client approves** → contract releases payment automatically
+5. **Provider marks as complete or rejects** → contract releases or refunds payment on chain.
 6. **Optional:** ENS, NFT receipt, and document verification for enhanced trust
 
 ---
