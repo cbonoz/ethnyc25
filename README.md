@@ -6,8 +6,7 @@
 SimpleOffer
 ---
 
-One click form collection and stablecoin payments backed by smart contracts for any service.
-
+Smart contract backed stablecoin payments for any service through PYUSD.
 
 Demo: https://simpleoffer.vercel.app (Sepolia)
 
