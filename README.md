@@ -9,7 +9,7 @@ SimpleOffer
 One click form collection and stablecoin payments backed by smart contracts for any service.
 
 
-Demo: https://simpleoffer.vercel.app
+Demo: https://simpleoffer.vercel.app (Sepolia)
 
 Example offer page: https://simpleoffer.vercel.app/offer/0xb387367720ae37E132DF0E0fDEC84A9b4074A83C (Sepolia)
 
