@@ -13,7 +13,7 @@ Demo: https://simpleoffer.vercel.app
 
 Example offer page: https://simpleoffer.vercel.app/offer/0xb387367720ae37E132DF0E0fDEC84A9b4074A83C (Sepolia)
 
-Demo video: 
+Demo video: https://youtu.be/9yo8MYGci9s
 
 ## Problem
 
